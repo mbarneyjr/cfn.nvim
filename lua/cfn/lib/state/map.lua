@@ -1,3 +1,4 @@
+local notify = require("cfn.lib.notify")
 local store = require("cfn.lib.state.store")
 
 ---@class Map<T>
@@ -73,16 +74,16 @@ function Map:persist(filename)
     })
     local writef, writef_err = io.open(path, "w")
     if writef_err ~= nil then
-      vim.notify("cfn.nvim: failed to open store dir: " .. writef_err)
+      notify.error("failed to open store dir: " .. writef_err)
       return
     elseif writef == nil then
-      vim.notify("cfn.nvim: failed to open store dir: file object is nil")
+      notify.error("failed to open store dir: file object is nil")
       return
     end
     local _, write_err = writef:write(encoded)
     writef:close()
     if write_err ~= nil then
-      vim.notify("cfn.nvim: failed to save template registrations: " .. write_err)
+      notify.error("failed to save template registrations: " .. write_err)
       return
     end
   end)

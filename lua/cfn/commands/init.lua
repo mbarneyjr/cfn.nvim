@@ -1,5 +1,6 @@
 local M = {}
 
+local notify = require("cfn.lib.notify")
 local template = require("cfn.commands.template")
 local profile = require("cfn.commands.profile")
 
@@ -19,7 +20,7 @@ M.commands = {
 ---@param options vim.api.keyset.create_user_command.command_args the full options table passed to the user command
 local function dispatch(args, options)
   if #args == 0 then
-    return vim.print("cfn.nvim: missing subcommand")
+    return notify.error("missing subcommand")
   end
 
   --- @type any
@@ -27,7 +28,7 @@ local function dispatch(args, options)
   for i, arg in ipairs(args) do
     current_command = current_command[arg]
     if current_command == nil then
-      return vim.print("cfn.nvim: unknown command '" .. table.concat(vim.list_slice(args, 1, i), " ") .. "'")
+      return notify.error("unknown command '" .. table.concat(vim.list_slice(args, 1, i), " ") .. "'")
     elseif type(current_command) == "function" then
       return current_command({ args = vim.list_slice(args, i + 1), bang = options.bang })
     end

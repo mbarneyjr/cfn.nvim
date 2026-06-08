@@ -17,6 +17,17 @@ require("cfn").setup()
 
 See [config.lua](./lua/cfn/config.lua) for all available configuration options.
 
+## Keymaps
+
+This plugin comes with a status pane to render relevant information about the CloudFormation templates in your project.
+You can register a keymap to open the status pane like so:
+
+```lua
+vim.keymap.set("n", "<leader>cs", require("cfn").fn.toggle_status_window, {
+  desc = "cfn.nvim: rename resource",
+})
+```
+
 ## Development
 
 Source the following lua code.

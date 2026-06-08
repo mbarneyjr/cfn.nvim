@@ -1,8 +1,6 @@
 local M = {}
 
 local notify = require("cfn.lib.notify")
-local template = require("cfn.commands.template")
-local profile = require("cfn.commands.profile")
 
 ---@class CfnHandlerOpts
 ---@field args string[]   args after the namespace + action
@@ -12,8 +10,9 @@ local profile = require("cfn.commands.profile")
 
 ---@type CommandTable | CfnHandler
 M.commands = {
-  template = template,
-  profile = profile,
+  template = require("cfn.commands.template"),
+  profile = require("cfn.commands.profile"),
+  status = require("cfn.commands.status"),
 }
 
 ---@param args string[] the raw list of space-separated args after the command name

@@ -17,6 +17,7 @@ M.fn = {
   unregister_template = require("cfn.core.template").unregister,
   load_profile = require("cfn.core.profile").load,
   toggle_status_window = require("cfn.lib.status.window").toggle,
+  rename_resource = require("cfn.core.rename").rename,
 }
 
 return M

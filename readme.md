@@ -28,6 +28,24 @@ vim.keymap.set("n", "<leader>cs", require("cfn").fn.toggle_status_window, {
 })
 ```
 
+The CloudFormation language server doesn't implement `textDocument/rename`.
+This means `vim.lsp.buf.rename` won't do anything in a template buffer.
+We recommend that you override your rename keymap to call `require("cfn").fn.rename_resource` instead.
+This will handle renaming a resource within your template, making sure to update all references to that resource.
+The following assumes you have `yaml.cloudformation`/`json.cloudformation` as registered filetypes for CloudFormation.
+
+```lua
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "yaml.cloudformation", "json.cloudformation" },
+  callback = function(args)
+    vim.keymap.set("n", "<leader>cr", require("cfn").fn.rename_resource, {
+      buffer = args.buf,
+      desc = "cfn.nvim: rename resource",
+    })
+  end,
+})
+```
+
 ## Development
 
 Source the following lua code.

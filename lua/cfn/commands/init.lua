@@ -14,6 +14,7 @@ M.commands = {
   profile = require("cfn.commands.profile"),
   status = require("cfn.commands.status"),
   rename = require("cfn.commands.rename"),
+  changeset = require("cfn.commands.changeset"),
 }
 
 ---@param args string[] the raw list of space-separated args after the command name

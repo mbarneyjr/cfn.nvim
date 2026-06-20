@@ -10,10 +10,7 @@ local Map = require("cfn.lib.state.map")
 M.template_registration = Map.new()
 M.template_registration:persist("template-registrations.json")
 
----@class Credentials
----@field jwe string
----@field expiration string
----@type Map<Credentials>
+---@type Map<CfnCredentials>
 M.credentials = Map.new()
 
 local session_key = nil

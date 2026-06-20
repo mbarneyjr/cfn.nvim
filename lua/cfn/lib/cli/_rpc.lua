@@ -1,6 +1,7 @@
 local M = {}
 
 local bin = require("cfn.lib.cli._bin")
+local notify = require("cfn.lib.notify")
 
 ---@param args string[]
 ---@return string? err
@@ -9,7 +10,10 @@ function M.run(args)
   local co = assert(coroutine.running(), "cfn.lib.cli.run functions must be called from a coroutine")
   vim.system({ bin.path(), unpack(args) }, { text = true }, function(result)
     vim.schedule(function()
-      coroutine.resume(co, result)
+      local ok, co_err = coroutine.resume(co, result)
+      if not ok then
+        notify.error(co_err)
+      end
     end)
   end)
   local result = coroutine.yield()

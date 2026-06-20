@@ -1,5 +1,7 @@
 local M = {}
 
+local notify = require("cfn.lib.notify")
+
 ---@generic T
 ---@param items T[]
 ---@param opts vim.ui.select.Opts
@@ -8,7 +10,10 @@ function M.select(items, opts)
   local co = assert(coroutine.running(), "cfn.lib.ui.select must be called from a coroutine")
   vim.ui.select(items, opts or {}, function(choice)
     vim.schedule(function()
-      coroutine.resume(co, choice)
+      local ok, co_err = coroutine.resume(co, choice)
+      if not ok then
+        notify.error(co_err)
+      end
     end)
   end)
   return coroutine.yield()
@@ -20,7 +25,10 @@ function M.input(opts)
   local co = assert(coroutine.running(), "cfn.lib.ui.input must be called from a coroutine")
   vim.ui.input(opts or {}, function(result)
     vim.schedule(function()
-      coroutine.resume(co, result)
+      local ok, co_err = coroutine.resume(co, result)
+      if not ok then
+        notify.error(co_err)
+      end
     end)
   end)
   return coroutine.yield()

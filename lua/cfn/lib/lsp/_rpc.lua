@@ -1,6 +1,7 @@
 local M = {}
 
 local config = require("cfn.lib.config")
+local notify = require("cfn.lib.notify")
 
 function M.client()
   return vim.lsp.get_clients({ name = config.options.lsp_client_name })[1]
@@ -19,7 +20,10 @@ function M.request(method, payload)
   local bufnr = vim.api.nvim_get_current_buf()
   client:request(method, payload, function(err, result)
     vim.schedule(function()
-      coroutine.resume(co, err, result)
+      local ok, co_err = coroutine.resume(co, err, result)
+      if not ok then
+        notify.error(co_err)
+      end
     end)
   end, bufnr)
   return coroutine.yield()

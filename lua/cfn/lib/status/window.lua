@@ -125,5 +125,6 @@ function M.render()
 end
 
 state.template_registration:on_change(M.render)
+state.active_changeset:on_change(M.render)
 
 return M

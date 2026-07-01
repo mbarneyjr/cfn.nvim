@@ -19,6 +19,17 @@ local UNAVAILABLE_STACK_STATUSES = {
   "IMPORT_ROLLBACK_FAILED",
 }
 
+---@param template_path string
+---@return string? error
+---@return boolean?
+local function template_requires_artifacts(template_path)
+  local artifacts_err, artifacts = lsp.template.artifacts(vim.uri_from_fname(template_path))
+  if artifacts_err ~= nil or artifacts == nil then
+    return "error getting template artifacts: " .. (artifacts_err or "no result from lsp"), nil
+  end
+  return nil, #artifacts.artifacts > 0
+end
+
 ---@param profile string | nil
 ---@param stack_name string | nil
 function M.register(profile, stack_name)
@@ -101,10 +112,26 @@ function M.register(profile, stack_name)
       end
     end
 
+    local requires_artifacts_err, requires_artifacts = template_requires_artifacts(template_path)
+    if requires_artifacts_err ~= nil or requires_artifacts == nil then
+      return notify.error(
+        "error checking if template requires artifacts: " .. (requires_artifacts_err or "no result from lsp")
+      )
+    end
+    ---@type string?
+    local register_err, artifact_bucket_name
+    if requires_artifacts then
+      register_err, artifact_bucket_name = ui.artifact_bucket.prompt_for_artifact_bucket()
+      if register_err ~= nil or artifact_bucket_name == nil then
+        return notify.error("error registering artifact bucket: " .. (register_err or "no bucket name returned"))
+      end
+    end
+
     state.template_registration:set(template_path, {
       profile = profile,
       region = creds.region,
       stack_name = stack_name,
+      artifact_bucket_name = artifact_bucket_name,
     })
     notify.info("registering template: " .. profile .. "/" .. stack_name)
   end)()

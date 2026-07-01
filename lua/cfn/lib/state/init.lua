@@ -6,9 +6,17 @@ local Map = require("cfn.lib.state.map")
 ---@field profile string
 ---@field region string
 ---@field stack_name string
+---@field artifact_bucket_name? string
 ---@type Map<TemplateRegistration>
 M.template_registration = Map.new()
 M.template_registration:persist("template-registrations.json")
+
+---@class ActiveChangeSet
+---@field id string
+---@field stackName string
+---@field changeSetName string
+---@type Map<ActiveChangeSet>
+M.active_changeset = Map.new()
 
 ---@type Map<CfnCredentials>
 M.credentials = Map.new()

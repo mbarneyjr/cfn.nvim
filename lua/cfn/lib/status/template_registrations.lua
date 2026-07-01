@@ -65,29 +65,59 @@ function M.get_status_window_data(content, highlights, interactivity_map)
         vim.api.nvim_win_close(assert(winid), true)
       end,
     }
+    current_line_number = #content
 
     -- if the current template is expanded
     if open_templates[path] then
       current_line_number = #content
-      line_content = "  "
+      if value.artifact_bucket_name then
+        line_content = "  "
+        local artifact_subtitle = "  saving artifacts to"
+        table.insert(highlights, {
+          line = current_line_number,
+          col_start = #line_content,
+          col_end = #line_content + #artifact_subtitle,
+          hl_group = "Label",
+        })
+        line_content = line_content .. artifact_subtitle
 
-      local content2 = "  more information to come in a future update"
-      table.insert(highlights, {
-        line = current_line_number,
-        col_start = #line_content,
-        col_end = #line_content + #content2,
-        hl_group = "Comment",
-      })
-      line_content = line_content .. content2
-      table.insert(content, line_content)
-      interactivity_map[current_line_number] = {
-        open = function()
-          open_templates[path] = true
-        end,
-        close = function()
-          open_templates[path] = false
-        end,
-      }
+        local artifact_bucket_name = ": s3://" .. value.artifact_bucket_name
+        table.insert(highlights, {
+          line = current_line_number,
+          col_start = #line_content,
+          col_end = #line_content + #artifact_bucket_name,
+          hl_group = "Normal",
+        })
+        line_content = line_content .. artifact_bucket_name
+
+        table.insert(content, line_content)
+        current_line_number = #content
+      end
+
+      local active_changeset = state.active_changeset:get(path)
+      if active_changeset ~= nil then
+        line_content = "  "
+        local changeset_subtitle = "  loaded changeset"
+        table.insert(highlights, {
+          line = current_line_number,
+          col_start = #line_content,
+          col_end = #line_content + #changeset_subtitle,
+          hl_group = "Label",
+        })
+        line_content = line_content .. changeset_subtitle
+
+        local changeset_name = ": " .. active_changeset.changeSetName
+        table.insert(highlights, {
+          line = current_line_number,
+          col_start = #line_content,
+          col_end = #line_content + #changeset_name,
+          hl_group = "Normal",
+        })
+        line_content = line_content .. changeset_name
+
+        table.insert(content, line_content)
+        current_line_number = #content
+      end
     end
   end
 end

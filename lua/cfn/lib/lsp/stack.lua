@@ -187,4 +187,48 @@ function M.capabilities(uri)
   return nil, result.capabilities
 end
 
+---@class CfnLspChangeSetSummary
+---@field changeSetName string
+---@field status string
+---@field creationTime? string
+---@field description? string
+---@class CfnLspListChangeSetParams
+---@field stackName string
+---@field nextToken? string
+---@class CfnLspListChangeSetResult
+---@field changeSets CfnLspChangeSetSummary[]
+---@field nextToken? string
+
+---@param params CfnLspListChangeSetParams
+---@return string? err
+---@return CfnLspListChangeSetResult? result
+function M.changeset_list(params)
+  ---@type lsp.ResponseError?, CfnLspListChangeSetResult?
+  local err, result = rpc.request("aws/cfn/stack/changeSet/list", params)
+  if err or result == nil then
+    return err and err.message or "no result", nil
+  end
+  return nil, result
+end
+
+---@param params CfnLspListChangeSetParams
+---@return string? err
+---@return CfnLspChangeSetSummary[]? changeSets
+function M.changeset_list_all(params)
+  local all = {}
+  local next_token = params.nextToken
+  while true do
+    local err, page = M.changeset_list({ stackName = params.stackName, nextToken = next_token })
+    if err or page == nil then
+      return err or "no result from LSP method", nil
+    end
+    vim.list_extend(all, page.changeSets)
+    if not page.nextToken then
+      break
+    end
+    next_token = page.nextToken
+  end
+  return nil, all
+end
+
 return M

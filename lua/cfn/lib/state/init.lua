@@ -12,7 +12,6 @@ M.template_registration = Map.new()
 M.template_registration:persist("template-registrations.json")
 
 ---@class ActiveChangeSet
----@field id string
 ---@field stackName string
 ---@field changeSetName string
 ---@type Map<ActiveChangeSet>

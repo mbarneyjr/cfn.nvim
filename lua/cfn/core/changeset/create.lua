@@ -2,28 +2,11 @@ local M = {}
 
 local lsp = require("cfn.lib.lsp")
 local state = require("cfn.lib.state")
-local buffer = require("cfn.lib.buffer")
 local notify = require("cfn.lib.notify")
 local progress = require("cfn.lib.progress")
 local credentials = require("cfn.lib.credentials")
 local ui = require("cfn.lib.ui")
-
----@return string? error
----@return TemplateRegistration? registration
----@return string? template_path
-local function get_template_registration()
-  local template_path_err, template_path = buffer.get_current_buffer_template_path()
-  if template_path_err ~= nil or not template_path then
-    return "cannot load profile: " .. (template_path_err or "no template path"), nil, nil
-  end
-
-  local registration = state.template_registration:get(template_path)
-  if registration == nil then
-    return "current template is not registered, please run :Cfn template register", nil, nil
-  end
-
-  return nil, registration, template_path
-end
+local util = require("cfn.core.changeset.util")
 
 ---@param template_path string
 ---@param stack_description CfnLspDescribeStackResult?
@@ -237,7 +220,7 @@ end
 
 function M.create()
   coroutine.wrap(function()
-    local registration_err, registration, template_path = get_template_registration()
+    local registration_err, registration, template_path = util.get_template_registration()
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return
@@ -308,7 +291,6 @@ function M.create()
     end
     wait_for_changeset(registration, create_validation)
     state.active_changeset:set(vim.fn.fnamemodify(template_path, ":."), {
-      id = create_validation.id,
       stackName = create_validation.stackName,
       changeSetName = create_validation.changeSetName,
     })

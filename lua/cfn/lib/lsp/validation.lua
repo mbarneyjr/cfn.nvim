@@ -49,6 +49,19 @@ function M.create(params)
 end
 
 ---@alias CfnLspStackActionState "IN_PROGRESS"|"SUCCESSFUL"|"FAILED"
+---@alias CfnLspStackActionPhase
+---| "VALIDATION_STARTED"
+---| "VALIDATION_IN_PROGRESS"
+---| "VALIDATION_COMPLETE"
+---| "VALIDATION_FAILED"
+---| "DEPLOYMENT_STARTED"
+---| "DEPLOYMENT_IN_PROGRESS"
+---| "DEPLOYMENT_COMPLETE"
+---| "DEPLOYMENT_FAILED"
+---| "DELETION_STARTED"
+---| "DELETION_IN_PROGRESS"
+---| "DELETION_COMPLETE"
+---| "DELETION_FAILED"
 ---@class CfnLspStackValidationStatusParams
 ---@field id string
 ---@class CfnLspStackValidationStatusResult

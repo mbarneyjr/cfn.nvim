@@ -36,6 +36,10 @@ function M.load()
       return (a.creationTime or "") > (b.creationTime or "")
     end)
 
+    if #valid_changesets == 0 then
+      return notify.warn("There are no valid changesets to load")
+    end
+
     local chosen_changeset = ui.select(valid_changesets, {
       prompt = "Select a changeset to load:",
       ---@param item CfnLspChangeSetSummary

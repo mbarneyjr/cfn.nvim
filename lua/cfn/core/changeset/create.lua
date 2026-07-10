@@ -6,6 +6,7 @@ local notify = require("cfn.lib.notify")
 local progress = require("cfn.lib.progress")
 local credentials = require("cfn.lib.credentials")
 local ui = require("cfn.lib.ui")
+local sleep = require("cfn.lib.sleep")
 local util = require("cfn.core.changeset.util")
 
 ---@param template_path string
@@ -72,6 +73,7 @@ local function wait_for_changeset(registration, create_validation)
     if result.state ~= "IN_PROGRESS" then
       done = true
     end
+    sleep.sleep(1000)
   end
   local describe_err, describe_result = lsp.validation.describe({
     id = create_validation.id,
@@ -272,8 +274,10 @@ function M.create()
     if resources_to_import ~= nil then
       include_nested_stacks = false
     end
+    local raw = vim.fn.reltimestr(vim.fn.reltime())
+    local id = "cfn-nvim-" .. raw:gsub("%s", ""):gsub("%.", "")
     local create_validation_err, create_validation = lsp.validation.create({
-      id = "cfn-nvim",
+      id = id,
       stackName = registration.stack_name,
       uri = vim.uri_from_fname(template_path),
       keepChangeSet = true,

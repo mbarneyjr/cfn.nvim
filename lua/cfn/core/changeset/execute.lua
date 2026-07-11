@@ -7,10 +7,44 @@ local lsp = require("cfn.lib.lsp")
 local state = require("cfn.lib.state")
 local sleep = require("cfn.lib.sleep")
 local util = require("cfn.core.changeset.util")
+local ui = require("cfn.lib.ui")
 
+---@type { [CfnLspResourceStatus]: HighlightGroupBuiltin}
+local action_map = {
+  CREATE_COMPLETE = "DiagnosticVirtualTextHint",
+  CREATE_FAILED = "DiagnosticVirtualTextError",
+  CREATE_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  DELETE_COMPLETE = "DiagnosticVirtualTextHint",
+  DELETE_FAILED = "DiagnosticVirtualTextError",
+  DELETE_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  DELETE_SKIPPED = "DiagnosticVirtualTextWarn",
+  EXPORT_COMPLETE = "DiagnosticVirtualTextHint",
+  EXPORT_FAILED = "DiagnosticVirtualTextError",
+  EXPORT_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  EXPORT_ROLLBACK_COMPLETE = "DiagnosticVirtualTextHint",
+  EXPORT_ROLLBACK_FAILED = "DiagnosticVirtualTextError",
+  EXPORT_ROLLBACK_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  IMPORT_COMPLETE = "DiagnosticVirtualTextHint",
+  IMPORT_FAILED = "DiagnosticVirtualTextError",
+  IMPORT_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  IMPORT_ROLLBACK_COMPLETE = "DiagnosticVirtualTextHint",
+  IMPORT_ROLLBACK_FAILED = "DiagnosticVirtualTextError",
+  IMPORT_ROLLBACK_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  ROLLBACK_COMPLETE = "DiagnosticVirtualTextHint",
+  ROLLBACK_FAILED = "DiagnosticVirtualTextError",
+  ROLLBACK_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  UPDATE_COMPLETE = "DiagnosticVirtualTextHint",
+  UPDATE_FAILED = "DiagnosticVirtualTextError",
+  UPDATE_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+  UPDATE_ROLLBACK_COMPLETE = "DiagnosticVirtualTextHint",
+  UPDATE_ROLLBACK_FAILED = "DiagnosticVirtualTextError",
+  UPDATE_ROLLBACK_IN_PROGRESS = "DiagnosticVirtualTextInfo",
+}
+
+---@param bufnr integer
 ---@param registration TemplateRegistration
 ---@param deployment CfnLspStackDeploymentCreateResult
-local function wait_for_deployment(registration, deployment)
+local function wait_for_deployment(bufnr, registration, deployment)
   local progress_report = progress.send("executing changeset", true, {
     title = registration.stack_name,
     status = "running",
@@ -29,6 +63,7 @@ local function wait_for_deployment(registration, deployment)
   local filter = {
     clientRequestToken = deployment.id,
   }
+  ui.template_highlight.clear(bufnr)
   while true do
     events_err, events, marker = lsp.stack.events_describe_until({
       stackName = registration.stack_name,
@@ -48,6 +83,18 @@ local function wait_for_deployment(registration, deployment)
         goto continue
       end
       if event.LogicalResourceId ~= nil and event.ResourceType ~= nil and event.ResourceStatus ~= nil then
+        local highlight_err = ui.template_highlight.highlight(
+          bufnr,
+          event.LogicalResourceId,
+          action_map[event.ResourceStatus] or "Normal",
+          event.ResourceStatusReason or ("Resource Status: " .. event.ResourceStatus),
+          "Title"
+        )
+        if highlight_err ~= nil and not highlight_err:find("resource not found for logical id") then
+          progress_report.status = "failed"
+          progress.send("error highlighting resource: " .. tostring(highlight_err), true, progress_report)
+          return
+        end
         progress.send(
           "resource " .. event.LogicalResourceId .. " (" .. event.ResourceType .. ") is " .. event.ResourceStatus,
           true,
@@ -84,11 +131,13 @@ local function wait_for_deployment(registration, deployment)
   end
   progress_report.status = "success"
   progress.send("executed changeset", true, progress_report)
+  ui.template_highlight.clear(bufnr)
 end
 
 function M.execute()
   coroutine.wrap(function()
-    local registration_err, registration, template_path = util.get_template_registration()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local registration_err, registration, template_path = util.get_template_registration(bufnr)
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return
@@ -116,8 +165,9 @@ function M.execute()
       notify.error("cannot execute changeset: " .. (deployment_err or "no deployment found"))
       return
     end
-    wait_for_deployment(registration, deployment)
+    wait_for_deployment(bufnr, registration, deployment)
     state.active_changeset:remove(vim.fn.fnamemodify(template_path, ":."))
+    notify.info("executed changeset: " .. deployment.changeSetName)
   end)()
 end
 

@@ -1,9 +1,12 @@
 local M = {}
 
+---@param bufnr? number
 ---@return string? err
 ---@return string? path
-function M.get_current_buffer_template_path()
-  local bufnr = vim.api.nvim_get_current_buf()
+function M.get_current_buffer_template_path(bufnr)
+  if bufnr == nil then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
   local filetype = vim.api.nvim_get_option_value("filetype", { buf = bufnr })
   if string.find(filetype, "yaml") == nil and string.find(filetype, "json") == nil then
     return "buffer is not a yaml or json file", nil

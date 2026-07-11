@@ -3,13 +3,15 @@ local M = {}
 local credentials = require("cfn.lib.credentials")
 local state = require("cfn.lib.state")
 local notify = require("cfn.lib.notify")
+local progress = require("cfn.lib.progress")
 local lsp = require("cfn.lib.lsp")
 local ui = require("cfn.lib.ui")
 local util = require("cfn.core.changeset.util")
 
 function M.load()
   coroutine.wrap(function()
-    local registration_err, registration, template_path = util.get_template_registration()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local registration_err, registration, template_path = util.get_template_registration(bufnr)
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return
@@ -57,10 +59,37 @@ function M.load()
       return
     end
 
+    local describe_err, described = lsp.stack.changeset_describe({
+      stackName = registration.stack_name,
+      changeSetName = chosen_changeset.changeSetName,
+    })
+    if describe_err ~= nil or described == nil then
+      notify.error("cannot describe changeset: " .. (describe_err or "no result"))
+      return
+    end
+
+    local highlight_err = util.highlight_changeset(bufnr, described)
+    if highlight_err ~= nil then
+      notify.error("error highlighting changeset: " .. highlight_err)
+      return
+    end
+
     state.active_changeset:set(vim.fn.fnamemodify(template_path, ":."), {
       stackName = registration.stack_name,
       changeSetName = chosen_changeset.changeSetName,
     })
+    local console_url = string.format(
+      "https://%s.console.aws.amazon.com/cloudformation/home?region=%s#/stacks/changesets/changes?stackId=%s&changeSetId=%s",
+      registration.region,
+      registration.region,
+      registration.stack_name,
+      chosen_changeset.changeSetName
+    )
+    progress.send(console_url, true, {
+      title = "changeset url",
+      status = "success",
+    })
+    notify.info("loaded changeset: " .. chosen_changeset.changeSetName)
   end)()
 end
 

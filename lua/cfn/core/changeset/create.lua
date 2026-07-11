@@ -55,6 +55,7 @@ end
 
 ---@param registration TemplateRegistration
 ---@param create_validation CfnLspStackValidationCreateResult
+---@return CfnLspStackValidationDescribeResult?
 local function wait_for_changeset(registration, create_validation)
   local done = false
   local progress_report = progress.send("creating changeset", true, {
@@ -90,6 +91,7 @@ local function wait_for_changeset(registration, create_validation)
   end
   progress_report.status = "success"
   progress.send("created changeset", true, progress_report)
+  return describe_result
 end
 
 ---@param registration TemplateRegistration
@@ -222,7 +224,8 @@ end
 
 function M.create()
   coroutine.wrap(function()
-    local registration_err, registration, template_path = util.get_template_registration()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local registration_err, registration, template_path = util.get_template_registration(bufnr)
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return
@@ -293,7 +296,15 @@ function M.create()
       notify.error("error checking changeset status: " .. (create_validation_err or "no result from lsp"))
       return
     end
-    wait_for_changeset(registration, create_validation)
+    local changeset = wait_for_changeset(registration, create_validation)
+    if changeset == nil then
+      return
+    end
+    local highlight_err = util.highlight_changeset(bufnr, changeset)
+    if highlight_err ~= nil then
+      notify.error("error highlighting changeset: " .. highlight_err)
+      return
+    end
     state.active_changeset:set(vim.fn.fnamemodify(template_path, ":."), {
       stackName = create_validation.stackName,
       changeSetName = create_validation.changeSetName,
@@ -309,6 +320,7 @@ function M.create()
       title = "changeset url",
       status = "success",
     })
+    notify.info("created changeset: " .. create_validation.changeSetName)
   end)()
 end
 

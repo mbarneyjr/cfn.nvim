@@ -13,8 +13,18 @@ function M.load(_)
 end
 
 ---@param _ CfnHandlerOpts
+function M.unload(_)
+  changeset.unload()
+end
+
+---@param _ CfnHandlerOpts
 function M.execute(_)
   changeset.execute()
+end
+
+---@param _ CfnHandlerOpts
+function M.open(_)
+  changeset.open()
 end
 
 return M

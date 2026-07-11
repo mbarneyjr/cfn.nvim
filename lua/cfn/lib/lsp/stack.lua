@@ -175,6 +175,35 @@ function M.resources_all(params)
   return nil, all
 end
 
+---@alias CfnLspResourceStatus
+---| "CREATE_COMPLETE"
+---| "CREATE_FAILED"
+---| "CREATE_IN_PROGRESS"
+---| "DELETE_COMPLETE"
+---| "DELETE_FAILED"
+---| "DELETE_IN_PROGRESS"
+---| "DELETE_SKIPPED"
+---| "EXPORT_COMPLETE"
+---| "EXPORT_FAILED"
+---| "EXPORT_IN_PROGRESS"
+---| "EXPORT_ROLLBACK_COMPLETE"
+---| "EXPORT_ROLLBACK_FAILED"
+---| "EXPORT_ROLLBACK_IN_PROGRESS"
+---| "IMPORT_COMPLETE"
+---| "IMPORT_FAILED"
+---| "IMPORT_IN_PROGRESS"
+---| "IMPORT_ROLLBACK_COMPLETE"
+---| "IMPORT_ROLLBACK_FAILED"
+---| "IMPORT_ROLLBACK_IN_PROGRESS"
+---| "ROLLBACK_COMPLETE"
+---| "ROLLBACK_FAILED"
+---| "ROLLBACK_IN_PROGRESS"
+---| "UPDATE_COMPLETE"
+---| "UPDATE_FAILED"
+---| "UPDATE_IN_PROGRESS"
+---| "UPDATE_ROLLBACK_COMPLETE"
+---| "UPDATE_ROLLBACK_FAILED"
+---| "UPDATE_ROLLBACK_IN_PROGRESS"
 ---@class CfnLspOperationEvent
 ---@field EventId? string
 ---@field StackId? string
@@ -188,7 +217,7 @@ end
 ---@field Timestamp? string ISO-8601 (aws-sdk Date serialized on the wire)
 ---@field StartTime? string ISO-8601
 ---@field EndTime? string ISO-8601
----@field ResourceStatus? string aws-sdk ResourceStatus enum
+---@field ResourceStatus? CfnLspResourceStatus aws-sdk ResourceStatus enum
 ---@field ResourceStatusReason? string
 ---@field ResourceProperties? string JSON blob of the properties used to create the resource
 ---@field ClientRequestToken? string shared by all events from one stack operation
@@ -318,6 +347,29 @@ function M.changeset_list_all(params)
     next_token = page.nextToken
   end
   return nil, all
+end
+
+---@class CfnLspDescribeChangeSetParams
+---@field stackName string
+---@field changeSetName string
+--- Result of "aws/cfn/stack/changeSet/describe". The server maps the raw SDK
+--- DescribeChangeSet output into CfnLspStackChange[] (see mapChangesToStackChanges),
+--- so `changes` matches the same shape used by stack validation describe.
+---@class CfnLspDescribeChangeSetResult : CfnLspChangeSetSummary
+---@field stackName string
+---@field changes? CfnLspStackChange[]
+---@field deploymentMode? CfnLspDeploymentMode
+
+---@param params CfnLspDescribeChangeSetParams
+---@return string? err
+---@return CfnLspDescribeChangeSetResult? result
+function M.changeset_describe(params)
+  ---@type lsp.ResponseError?, CfnLspDescribeChangeSetResult?
+  local err, result = rpc.request("aws/cfn/stack/changeSet/describe", params)
+  if err or result == nil then
+    return err and err.message or "no result", nil
+  end
+  return nil, result
 end
 
 return M

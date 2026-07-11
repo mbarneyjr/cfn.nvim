@@ -85,8 +85,9 @@ end
 ---@field Evaluation? string
 ---@field ChangeSource? string
 ---@field CausingEntity? string
+---@alias CfnLspChangeAction "Add"|"Dynamic"|"Import"|"Modify"|"Remove"|"SyncWithActual"
 ---@class CfnLspResourceChange
----@field action? string
+---@field action? CfnLspChangeAction
 ---@field logicalResourceId? string
 ---@field physicalResourceId? string
 ---@field resourceType? string

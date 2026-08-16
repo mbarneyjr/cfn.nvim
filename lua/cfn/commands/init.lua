@@ -14,6 +14,8 @@ M.commands = {
   profile = require("cfn.commands.profile"),
   status = require("cfn.commands.status"),
   rename = require("cfn.commands.rename"),
+  import = require("cfn.commands.import"),
+  unimport = require("cfn.commands.unimport"),
   changeset = require("cfn.commands.changeset"),
 }
 

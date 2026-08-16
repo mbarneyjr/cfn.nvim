@@ -53,4 +53,23 @@ function M.list_resources_all(resources)
   return nil, all
 end
 
+---@class CfnLspResourceStackManagementResult
+---@field physicalResourceId string
+---@field managedByStack boolean?
+---@field stackName? string
+---@field stackId? string
+---@field error? string
+
+---@param physical_resource_id string
+---@return string? err
+---@return CfnLspResourceStackManagementResult? result
+function M.stack_mgmt_info(physical_resource_id)
+  ---@type lsp.ResponseError?, CfnLspResourceStackManagementResult?
+  local err, result = rpc.request("aws/cfn/resources/stackMgmtInfo", physical_resource_id)
+  if err or result == nil then
+    return err and err.message or "no result", nil
+  end
+  return nil, result
+end
+
 return M

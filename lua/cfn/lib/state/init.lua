@@ -11,6 +11,11 @@ local Map = require("cfn.lib.state.map")
 M.template_registration = Map.new()
 M.template_registration:persist("template-registrations.json")
 
+---@class ResourceToImportRegistration
+---@field resources CfnLspResourceToImport[]
+---@type Map<ResourceToImportRegistration>
+M.resources_to_import = Map.new()
+
 ---@class ActiveChangeSet
 ---@field stackName string
 ---@field changeSetName string

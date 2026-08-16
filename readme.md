@@ -15,7 +15,7 @@ Neovim plugin for working with AWS CloudFormation templates.
 require("cfn").setup()
 ```
 
-See [config.lua](./lua/cfn/config.lua) for all available configuration options.
+See [config.lua](./lua/cfn/lib/config.lua) for all available configuration options.
 
 ## Keymaps
 

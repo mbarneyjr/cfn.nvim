@@ -125,7 +125,13 @@ end
 local function get_resource_import(registration, template_path)
   local stack_resources_err, stack_resources = lsp.stack.resources_all({ stackName = registration.stack_name })
   if stack_resources_err ~= nil or stack_resources == nil then
-    return "error getting stack resources: " .. (stack_resources_err or "no result from lsp"), nil, nil
+    if not stack_resources_err then
+      stack_resources_err = "no result from lsp"
+    end
+    if not string.find(stack_resources_err, "does not exist") then
+      return "error getting stack resources: " .. stack_resources_err, nil, nil
+    end
+    stack_resources = {}
   end
   local stack_resource_map = {}
   for _, stack_resource in ipairs(stack_resources) do
@@ -149,18 +155,32 @@ local function get_resource_import(registration, template_path)
     return nil, nil, nil
   end
 
-  local import_choices = {
-    ["AUTO_IMPORT"] = "auto-import named resources",
-    ["IMPORT_EXISTING_RESOURCES"] = "import existing resources",
-    ["CREATE_NEW_RESOURCES"] = "create new resources",
-  }
-  local import_choice_ordered = { "AUTO_IMPORT", "IMPORT_EXISTING_RESOURCES", "CREATE_NEW_RESOURCES" }
-  local import_choice = ui.select(import_choice_ordered, {
-    prompt = "New resources detected, how would you like to handle them?",
-    format_item = function(choice)
-      return import_choices[choice]
-    end,
-  })
+  ---@type { [string]: CfnLspResourceToImport }
+  local resources_to_import = {}
+  local resources_to_import_registration = state.resources_to_import:get(template_path)
+  if resources_to_import_registration ~= nil and resources_to_import_registration.resources ~= nil then
+    for _, resource_to_import in ipairs(resources_to_import_registration.resources) do
+      resources_to_import[resource_to_import.LogicalResourceId] = resource_to_import
+    end
+  end
+
+  local import_choice
+  if next(resources_to_import) ~= nil then
+    import_choice = "IMPORT_EXISTING_RESOURCES"
+  else
+    local import_choices = {
+      ["AUTO_IMPORT"] = "auto-import named resources",
+      ["IMPORT_EXISTING_RESOURCES"] = "import existing resources",
+      ["CREATE_NEW_RESOURCES"] = "create new resources",
+    }
+    local import_choice_ordered = { "AUTO_IMPORT", "IMPORT_EXISTING_RESOURCES", "CREATE_NEW_RESOURCES" }
+    import_choice = ui.select(import_choice_ordered, {
+      prompt = "New resources detected, how would you like to handle them?",
+      format_item = function(choice)
+        return import_choices[choice]
+      end,
+    })
+  end
   if import_choice == nil then
     return "no import choice selected", nil, nil
   elseif import_choice == "AUTO_IMPORT" then
@@ -169,11 +189,12 @@ local function get_resource_import(registration, template_path)
     return nil, nil, false
   end
 
-  ---@type CfnLspResourceToImport[]
-  local resources_to_import = {}
   ---@type { [string]: string[] }
   local discovered_resources = {}
   for _, importable_resource in ipairs(new_resources) do
+    if resources_to_import[importable_resource.logicalId] ~= nil then
+      goto continue
+    end
     if discovered_resources[importable_resource.type] == nil then
       local resources_err, resources = lsp.resources.list_resources_all({ { resourceType = importable_resource.type } })
       if resources_err ~= nil or resources == nil or #resources < 1 then
@@ -186,12 +207,12 @@ local function get_resource_import(registration, template_path)
       for _, key in ipairs(importable_resource.primaryIdentifierKeys or {}) do
         local resource_identifier = ui.input({
           prompt = "Please enter the "
-            .. key
-            .. " for "
-            .. importable_resource.logicalId
-            .. " ("
-            .. importable_resource.type
-            .. ")",
+              .. key
+              .. " for "
+              .. importable_resource.logicalId
+              .. " ("
+              .. importable_resource.type
+              .. ")",
         })
         if resource_identifier == nil then
           return "no resource identifier provided for " .. importable_resource.logicalId, nil, nil
@@ -213,13 +234,19 @@ local function get_resource_import(registration, template_path)
         resource_identifier_table[key] = chosen_identifier_split[i]
       end
     end
-    table.insert(resources_to_import, {
+    resources_to_import[importable_resource.logicalId] = {
       ResourceType = importable_resource.type,
       LogicalResourceId = importable_resource.logicalId,
       ResourceIdentifier = resource_identifier_table,
-    })
+    }
+    ::continue::
   end
-  return nil, resources_to_import, nil
+  ---@type CfnLspResourceToImport[]
+  local result = {}
+  for _, resource_to_import in pairs(resources_to_import) do
+    table.insert(result, resource_to_import)
+  end
+  return nil, result, nil
 end
 
 function M.create()
@@ -305,6 +332,7 @@ function M.create()
       notify.error("error highlighting changeset: " .. highlight_err)
       return
     end
+    state.resources_to_import:remove(template_path)
     state.active_changeset:set(vim.fn.fnamemodify(template_path, ":."), {
       stackName = create_validation.stackName,
       changeSetName = create_validation.changeSetName,

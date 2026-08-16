@@ -5,6 +5,17 @@ local config = require("cfn.lib.config")
 
 ---@type { [string]: boolean }
 local open_templates = {}
+---@type { [string]: boolean }
+local open_imports = {}
+
+---@param resource_identifier table<string,string>
+local function resource_identifier_to_string(resource_identifier)
+  local parts = {}
+  for _, v in pairs(resource_identifier) do
+    table.insert(parts, v)
+  end
+  return table.concat(parts, "|")
+end
 
 ---@type StatusWindowDataHandler
 function M.get_status_window_data(content, highlights, interactivity_map)
@@ -92,6 +103,52 @@ function M.get_status_window_data(content, highlights, interactivity_map)
 
         table.insert(content, line_content)
         current_line_number = #content
+      end
+
+      local resources_to_import = state.resources_to_import:get(key)
+      if resources_to_import ~= nil and #resources_to_import.resources > 0 then
+        line_content = "  "
+          .. (open_imports[path] == true and config.options.icons.arrow_open or config.options.icons.arrow_closed)
+          .. " "
+        local imports_subtitle = "resources to import (" .. #resources_to_import.resources .. ")"
+        table.insert(highlights, {
+          line = current_line_number,
+          col_start = #line_content,
+          col_end = #line_content + #imports_subtitle,
+          hl_group = "Label",
+        })
+        line_content = line_content .. imports_subtitle
+        table.insert(content, line_content)
+        interactivity_map[current_line_number] = {
+          open = function()
+            open_imports[path] = true
+          end,
+          close = function()
+            open_imports[path] = false
+          end,
+        }
+        current_line_number = #content
+
+        if open_imports[path] then
+          for _, r in ipairs(resources_to_import.resources) do
+            current_line_number = #content
+            local current_column_number = 0
+            local line = "      " .. r.LogicalResourceId .. " (" .. r.ResourceType .. ")"
+            table.insert(
+              highlights,
+              { line = current_line_number, col_start = current_column_number, col_end = #line, hl_group = "Label" }
+            )
+            current_column_number = #line
+
+            line = line .. ": " .. resource_identifier_to_string(r.ResourceIdentifier)
+            table.insert(
+              highlights,
+              { line = current_line_number, col_start = current_column_number, col_end = #line, hl_group = "Normal" }
+            )
+            current_column_number = #line
+            table.insert(content, line)
+          end
+        end
       end
 
       local active_changeset = state.active_changeset:get(path)

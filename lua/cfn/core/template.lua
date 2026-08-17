@@ -7,17 +7,7 @@ local cli = require("cfn.lib.cli")
 local ui = require("cfn.lib.ui")
 local credentials = require("cfn.lib.credentials")
 local buffer = require("cfn.lib.buffer")
-
-local UNAVAILABLE_STACK_STATUSES = {
-  "CREATE_FAILED",
-  "ROLLBACK_FAILED",
-  "ROLLBACK_COMPLETE",
-  "DELETE_FAILED",
-  "DELETE_COMPLETE",
-  "UPDATE_FAILED",
-  "UPDATE_ROLLBACK_FAILED",
-  "IMPORT_ROLLBACK_FAILED",
-}
+local util = require("cfn.lib.util")
 
 ---@param template_path string
 ---@return string? error
@@ -67,7 +57,7 @@ function M.register(profile, stack_name)
       )
     end
     if not stack_name then
-      local err, stacks = lsp.cfn.stacks_all({ statusToExclude = UNAVAILABLE_STACK_STATUSES })
+      local err, stacks = lsp.cfn.stacks_all({ statusToExclude = util.cfn.UNAVAILABLE_STACK_STATUSES })
       if err or stacks == nil then
         notify.error("could not list CloudFormation stacks: " .. (err or "no result"))
         return

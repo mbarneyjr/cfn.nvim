@@ -1,33 +1,6 @@
 local M = {}
 
-local buffer = require("cfn.lib.buffer")
-local state = require("cfn.lib.state")
 local ui = require("cfn.lib.ui")
-
----@param bufnr? number
----@return string? error
----@return TemplateRegistration? registration
----@return string? template_path
-function M.get_template_registration(bufnr)
-  local template_path_err, template_path = buffer.get_current_buffer_template_path(bufnr)
-  if template_path_err ~= nil or not template_path then
-    return "cannot load profile: " .. (template_path_err or "no template path"), nil, nil
-  end
-
-  local registration = state.template_registration:get(template_path)
-  if registration == nil then
-    return "current template is not registered, please run :Cfn template register", nil, nil
-  end
-
-  return nil, registration, template_path
-end
-
-function M.clear_highlight(bufnr)
-  local clear_err = ui.template_highlight.clear(bufnr)
-  if clear_err ~= nil then
-    return "cannot clear resource highlights: " .. clear_err
-  end
-end
 
 ---@type { [CfnLspChangeAction]: HighlightGroupBuiltin}
 local action_map = {

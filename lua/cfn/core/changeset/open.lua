@@ -3,12 +3,12 @@ local M = {}
 local state = require("cfn.lib.state")
 local notify = require("cfn.lib.notify")
 local progress = require("cfn.lib.progress")
-local util = require("cfn.core.changeset.util")
+local util = require("cfn.lib.util")
 
 function M.open()
   coroutine.wrap(function()
     local bufnr = vim.api.nvim_get_current_buf()
-    local registration_err, registration, template_path = util.get_template_registration(bufnr)
+    local registration_err, registration, template_path = util.state.get_template_registration(bufnr)
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.warn(registration_err or "no registration found")
       return

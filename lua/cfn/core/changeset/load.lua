@@ -6,12 +6,13 @@ local notify = require("cfn.lib.notify")
 local progress = require("cfn.lib.progress")
 local lsp = require("cfn.lib.lsp")
 local ui = require("cfn.lib.ui")
-local util = require("cfn.core.changeset.util")
+local util = require("cfn.lib.util")
+local changeset_util = require("cfn.core.changeset.util")
 
 function M.load()
   coroutine.wrap(function()
     local bufnr = vim.api.nvim_get_current_buf()
-    local registration_err, registration, template_path = util.get_template_registration(bufnr)
+    local registration_err, registration, template_path = util.state.get_template_registration(bufnr)
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return
@@ -68,7 +69,7 @@ function M.load()
       return
     end
 
-    local highlight_err = util.highlight_changeset(bufnr, described)
+    local highlight_err = changeset_util.highlight_changeset(bufnr, described)
     if highlight_err ~= nil then
       notify.error("error highlighting changeset: " .. highlight_err)
       return

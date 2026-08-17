@@ -6,7 +6,7 @@ local progress = require("cfn.lib.progress")
 local lsp = require("cfn.lib.lsp")
 local state = require("cfn.lib.state")
 local sleep = require("cfn.lib.sleep")
-local util = require("cfn.core.changeset.util")
+local util = require("cfn.lib.util")
 local ui = require("cfn.lib.ui")
 
 ---@type { [CfnLspResourceStatus]: HighlightGroupBuiltin}
@@ -137,7 +137,7 @@ end
 function M.execute()
   coroutine.wrap(function()
     local bufnr = vim.api.nvim_get_current_buf()
-    local registration_err, registration, template_path = util.get_template_registration(bufnr)
+    local registration_err, registration, template_path = util.state.get_template_registration(bufnr)
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return

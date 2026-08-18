@@ -17,6 +17,7 @@ M.commands = {
   import = require("cfn.commands.import"),
   unimport = require("cfn.commands.unimport"),
   changeset = require("cfn.commands.changeset"),
+  refactor = require("cfn.commands.refactor"),
 }
 
 ---@param args string[] the raw list of space-separated args after the command name

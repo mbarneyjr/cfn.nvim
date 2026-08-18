@@ -21,10 +21,10 @@ M.UNAVAILABLE_STACK_STATUSES = {
 function M.resource_exists_in_stack(stack_name, logical_id, refactor_operation)
   if refactor_operation ~= nil then
     for _, mapping in ipairs(refactor_operation.mappings or {}) do
-      if mapping.source.stack_name == stack_name and mapping.source.logical_id == logical_id then
-        return nil, false
-      end
-      if mapping.destination.stack_name == stack_name and mapping.destination.logical_id == logical_id then
+      if
+        (mapping.source.stack_name == stack_name and mapping.source.logical_id == logical_id)
+        or (mapping.destination.stack_name == stack_name and mapping.destination.logical_id == logical_id)
+      then
         return nil, true
       end
     end

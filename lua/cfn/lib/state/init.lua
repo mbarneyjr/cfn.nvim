@@ -16,6 +16,21 @@ M.template_registration:persist("template-registrations.json")
 ---@type Map<ResourceToImportRegistration>
 M.resources_to_import = Map.new()
 
+---@class RefactorStackDefinition
+---@field stack_name string
+---@field template_path string
+---@class RefactorResourceMappingLocation
+---@field stack_name string
+---@field logical_id string
+---@class RefactorResourceMapping
+---@field source RefactorResourceMappingLocation
+---@field destination RefactorResourceMappingLocation
+---@class RefactorMappingRegistration
+---@field stack_definitions RefactorStackDefinition[]
+---@field mappings RefactorResourceMapping[]
+---@type Map<RefactorMappingRegistration>
+M.refactor_operation = Map.new()
+
 ---@class ActiveChangeSet
 ---@field stackName string
 ---@field changeSetName string

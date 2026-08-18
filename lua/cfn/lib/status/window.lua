@@ -4,6 +4,7 @@ local state = require("cfn.lib.state")
 local config = require("cfn.lib.config")
 local intro = require("cfn.lib.status.intro")
 local template_registrations = require("cfn.lib.status.template_registrations")
+local refactor = require("cfn.lib.status.refactor")
 
 ---@class Highlight
 ---@field line integer
@@ -111,6 +112,7 @@ function M.render()
 
   intro.get_status_window_data(content, highlights, interactivity_map)
   template_registrations.get_status_window_data(content, highlights, interactivity_map)
+  refactor.get_status_window_data(content, highlights, interactivity_map)
 
   vim.bo[bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(assert(bufnr), 0, -1, false, content)
@@ -127,5 +129,6 @@ end
 state.template_registration:on_change(M.render)
 state.active_changeset:on_change(M.render)
 state.resources_to_import:on_change(M.render)
+state.refactor_operation:on_change(M.render)
 
 return M

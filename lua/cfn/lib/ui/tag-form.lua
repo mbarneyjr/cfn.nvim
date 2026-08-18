@@ -20,7 +20,7 @@ end
 
 ---@param tag_object TagObject
 ---@return CfnLspTag[]
-local function tag_object_to_array(tag_object)
+function M.to_array(tag_object)
   ---@type CfnLspTag[]
   local tags = {}
   for key, value in pairs(tag_object) do
@@ -31,7 +31,7 @@ end
 
 ---@param tag_array CfnLspTag[]
 ---@return TagObject
-local function tag_array_to_object(tag_array)
+function M.to_object(tag_array)
   ---@type TagObject
   local tags = {}
   for _, tag in ipairs(tag_array) do
@@ -129,7 +129,7 @@ end
 ---@return string? error_message
 ---@return CfnLspTag[]?
 function M.collect_tags(tags)
-  local tag_object = tag_array_to_object(tags or {})
+  local tag_object = M.to_object(tags or {})
   local co = assert(coroutine.running(), "collect_tags must be called from a coroutine")
   if window_is_open() then
     vim.api.nvim_set_current_win(assert(winid))
@@ -147,7 +147,7 @@ function M.collect_tags(tags)
       bufnr = nil
       local err, values
       if submitted then
-        values = tag_object_to_array(tag_object)
+        values = M.to_array(tag_object)
       else
         err = "tag input cancelled"
       end

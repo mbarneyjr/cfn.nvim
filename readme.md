@@ -46,6 +46,34 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 ```
 
+## Parameter / Tag Form Hooks
+
+You can define a lua function that gets called as a hook to retrieve parameter or tag values at ChangeSet creation time.
+
+```lua
+---@alias CfnHook fun(ctx: cfn.HookContext): table<string, string>? values keyed by name, used to pre-populate the form
+
+require("cfn").setup({
+  hooks = {
+    ---@type CfnHook
+    tags = function(ctx)
+      return {
+        key = "value",
+        region = ctx.region,
+        stack_name = ctx.stack_name,
+        profile = ctx.profile,
+        template_path = ctx.template_path,
+      }
+    end,
+    ---@type CfnHook
+    parameters = function(ctx)
+      ...
+      return { key = "value" }
+    end,
+  },
+})
+```
+
 ## Development
 
 Source the following lua code.

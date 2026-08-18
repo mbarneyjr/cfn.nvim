@@ -8,19 +8,19 @@ local credentials = require("cfn.lib.credentials")
 local ui = require("cfn.lib.ui")
 local sleep = require("cfn.lib.sleep")
 local util = require("cfn.lib.util")
+local config = require("cfn.lib.config")
 local changeset_util = require("cfn.core.changeset.util")
 
----@param template_path string
----@param stack_description CfnLspDescribeStackResult?
+---@param ctx cfn.HookContext
 ---@return string? error
 ---@return CfnLspParameter[]?
-local function get_parameters(template_path, stack_description)
-  local stack_parameters_err, stack_parameters = lsp.stack.parameters(vim.uri_from_fname(template_path))
+local function get_parameters(ctx)
+  local stack_parameters_err, stack_parameters = lsp.stack.parameters(vim.uri_from_fname(ctx.template_path))
   if stack_parameters_err ~= nil or stack_parameters == nil then
     return "error getting template parameters: " .. (stack_parameters_err or "no result from lsp"), nil
   end
-  if stack_description ~= nil then
-    for _, existing_parameter in ipairs(stack_description.stack.Parameters or {}) do
+  if ctx.stack ~= nil then
+    for _, existing_parameter in ipairs(ctx.stack.Parameters or {}) do
       for _, template_parameter in ipairs(stack_parameters.parameters) do
         if existing_parameter.ParameterKey == template_parameter.name then
           if template_parameter.NoEcho then
@@ -32,20 +32,29 @@ local function get_parameters(template_path, stack_description)
       end
     end
   end
-  local param_err, params = ui.parameter_form.collect_parameter_values(stack_parameters.parameters, template_path)
+  for name, value in pairs(config.call_hook("parameters", ctx) or {}) do
+    for _, template_parameter in ipairs(stack_parameters.parameters) do
+      if template_parameter.name == name then
+        template_parameter.CurrentValue = tostring(value)
+        template_parameter.UsePreviousValue = false
+      end
+    end
+  end
+  local param_err, params = ui.parameter_form.collect_parameter_values(stack_parameters.parameters, ctx.template_path)
   if param_err ~= nil or params == nil then
     return "error collecting parameters: " .. (param_err or "no parameters returned"), nil
   end
   return nil, params
 end
 
----@param stack_description CfnLspDescribeStackResult?
+---@param ctx cfn.HookContext
 ---@return string? error
----@return CfnLspParameter[]?
-local function get_tags(stack_description)
-  local stack_tags = nil
-  if stack_description ~= nil then
-    stack_tags = stack_description.stack.Tags
+---@return CfnLspTag[]?
+local function get_tags(ctx)
+  local stack_tags = ctx.stack and ctx.stack.Tags
+  local supplied = config.call_hook("tags", ctx)
+  if supplied ~= nil then
+    stack_tags = ui.tag_form.to_array(vim.tbl_extend("force", ui.tag_form.to_object(stack_tags or {}), supplied))
   end
   local tag_err, tags = ui.tag_form.collect_tags(stack_tags)
   if tag_err ~= nil or tags == nil then
@@ -271,13 +280,22 @@ function M.create()
       end
     end
 
-    local params_err, params = get_parameters(template_path, stack_description)
+    ---@type cfn.HookContext
+    local ctx = {
+      template_path = template_path,
+      stack_name = registration.stack_name,
+      profile = registration.profile,
+      region = registration.region,
+      stack = stack_description and stack_description.stack,
+    }
+
+    local params_err, params = get_parameters(ctx)
     if params_err ~= nil or params == nil then
       notify.error(params_err or "no parameters returned")
       return
     end
 
-    local tag_err, tags = get_tags(stack_description)
+    local tag_err, tags = get_tags(ctx)
     if tag_err ~= nil or tags == nil then
       notify.error("error collecting tags: " .. (tag_err or "no tags returned"))
       return

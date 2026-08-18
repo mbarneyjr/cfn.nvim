@@ -17,4 +17,9 @@ function M.move(_)
   refactor.move()
 end
 
+---@param _ CfnHandlerOpts
+function M.clear(_)
+  refactor.clear()
+end
+
 return M

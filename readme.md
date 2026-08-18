@@ -9,6 +9,85 @@ Neovim plugin for working with AWS CloudFormation templates.
   - https://github.com/aws-cloudformation/cloudformation-languageserver
   - follow the instructions in that repo, you should have a `"cfn_lsp"` server configured
 
+## Installation
+
+The plugin needs the `cfn-nvim` helper binary.
+It finds the binary in this order:
+
+1. `bin.path` from `setup()`
+1. `bin/cfn-nvim` inside the plugin directory
+1. `cfn-nvim` on your `PATH`
+1. a copy downloaded from the GitHub release that matches the checked out tag
+
+A tagged install needs no extra setup.
+The plugin reads its version with `git describe --tags --exact-match` and downloads that version of the executable.
+
+With vim.pack:
+
+```lua
+vim.pack.add({
+  { src = "https://github.com/mbarneyjr/cfn.nvim", version = vim.version.range("*") },
+})
+```
+
+With lazy.nvim:
+
+```lua
+{ "mbarneyjr/cfn.nvim", version = "*" }
+```
+
+### Install from main
+
+The plugin cannot pick a binary version when it is not checked out at a release tag.
+You must build the binary instead with `go`.
+Build it to `bin/cfn-nvim` inside the plugin directory, where the plugin looks for it.
+No `setup()` change is needed.
+
+With `vim.pack`, register this autocmd before `vim.pack.add()`:
+
+```lua
+vim.api.nvim_create_autocmd("PackChanged", {
+  callback = function(ev)
+    if ev.data.spec.name == "cfn.nvim" and ev.data.kind ~= "delete" then
+      vim.system({ "go", "build", "-o", "bin/cfn-nvim", "." }, { cwd = ev.data.path })
+    end
+  end,
+})
+vim.pack.add({
+  { src = "https://github.com/mbarneyjr/cfn.nvim", version = "main" },
+})
+```
+
+With lazy.nvim:
+
+```lua
+{ "mbarneyjr/cfn.nvim", branch = "main", build = "go build -o bin/cfn-nvim ." }
+```
+
+### Nix
+
+This flake outputs two packages: `vim-plugin` is the plugin, `cfn-nvim` is the helper binary.
+
+```nix
+{
+  inputs.cfn-nvim.url = "github:mbarneyjr/cfn.nvim";
+}
+```
+
+```nix
+let
+  cfn = inputs.cfn-nvim.packages.${pkgs.system};
+in
+{
+  programs.neovim = {
+    plugins = [ cfn.vim-plugin ];
+    extraPackages = [ cfn.cfn-nvim ];
+  };
+}
+```
+
+`extraPackages` puts `cfn-nvim` on Neovim's `PATH`, so the plugin uses it and never downloads.
+
 ## Setup
 
 ```lua

@@ -1,0 +1,49 @@
+name: release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"
+          VERSION: ${{ github.event.release.tag_name }}
+          ASSET: cfn-nvim-${{ matrix.goos }}-${{ matrix.goarch }}
+        run: |
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X github.com/mbarneyjr/cfn.nvim/cmd.version=${VERSION}" \
+            -o "${ASSET}" .
+          sha256sum "${ASSET}" > "${ASSET}.sha256"
+      - name: upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+          ASSET: cfn-nvim-${{ matrix.goos }}-${{ matrix.goarch }}
+        run: gh release upload "${TAG}" "${ASSET}" "${ASSET}.sha256" --clobber

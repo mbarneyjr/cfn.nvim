@@ -9,6 +9,7 @@ import (
 var (
 	profile string
 	region  string
+	version = "dev"
 )
 
 var rootCmd = &cobra.Command{
@@ -16,6 +17,7 @@ var rootCmd = &cobra.Command{
 	Short:        "cfn.nvim helper",
 	Long:         "The helper CLI tool for the cfn.nvim plugin",
 	SilenceUsage: true,
+	Version:      version,
 }
 
 func init() {

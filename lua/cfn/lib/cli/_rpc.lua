@@ -8,7 +8,11 @@ local notify = require("cfn.lib.notify")
 ---@return any? result
 function M.run(args)
   local co = assert(coroutine.running(), "cfn.lib.cli.run functions must be called from a coroutine")
-  vim.system({ bin.path(), unpack(args) }, { text = true }, function(result)
+  local bin_err, bin_path = bin.path()
+  if bin_err ~= nil or bin_path == nil then
+    return bin_err, nil
+  end
+  vim.system({ bin_path, unpack(args) }, { text = true }, function(result)
     vim.schedule(function()
       local ok, co_err = coroutine.resume(co, result)
       if not ok then

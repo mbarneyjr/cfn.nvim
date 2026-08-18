@@ -261,6 +261,9 @@ end
 ---@return CfnLspParameter[]?
 function M.collect_parameter_values(params, template_path)
   local co = assert(coroutine.running(), "collect_parameter_values must be called from a coroutine")
+  if #params == 0 then
+    return nil, {}
+  end
   if window_is_open() then
     vim.api.nvim_set_current_win(assert(winid))
     return "parameter collection already in progress"

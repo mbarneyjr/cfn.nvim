@@ -23,6 +23,20 @@ function M.locations_equal(a, b)
   return a.stack_name == b.stack_name and a.logical_id == b.logical_id
 end
 
+---@param refactor_operation RefactorMappingRegistration
+function M.remove_unused_stack_definitions(refactor_operation)
+  local used = {}
+  for _, mapping in ipairs(refactor_operation.mappings) do
+    used[mapping.source.stack_name] = true
+    used[mapping.destination.stack_name] = true
+  end
+  for i = #refactor_operation.stack_definitions, 1, -1 do
+    if not used[refactor_operation.stack_definitions[i].stack_name] then
+      table.remove(refactor_operation.stack_definitions, i)
+    end
+  end
+end
+
 ---@param new_mapping RefactorResourceMapping
 ---@param refactor_operation RefactorMappingRegistration
 ---@return string? err
@@ -74,7 +88,13 @@ function M.reconcile_move(new_mapping, refactor_operation)
   end
 
   if override_index ~= nil then
-    refactor_operation.mappings[override_index].destination = new_mapping.destination
+    local existing = refactor_operation.mappings[override_index]
+    if M.locations_equal(existing.source, new_mapping.destination) then
+      table.remove(refactor_operation.mappings, override_index)
+      M.remove_unused_stack_definitions(refactor_operation)
+      return
+    end
+    existing.destination = new_mapping.destination
   else
     table.insert(refactor_operation.mappings, new_mapping)
   end

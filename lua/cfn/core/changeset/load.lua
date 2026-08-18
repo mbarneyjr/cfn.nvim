@@ -18,9 +18,7 @@ function M.load()
       return
     end
 
-    if credentials.current_profile() ~= registration.profile then
-      credentials.set(registration.profile)
-    end
+    credentials.set(registration.profile, registration.region)
     local changeset_err, changesets = lsp.stack.changeset_list_all({
       stackName = registration.stack_name,
     })

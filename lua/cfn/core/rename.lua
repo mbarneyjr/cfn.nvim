@@ -70,9 +70,7 @@ function M.rename()
 
     local _, template_registration, _ = util.state.get_template_registration()
     if template_registration ~= nil then
-      if credentials.current_profile() == nil then
-        credentials.set(template_registration.profile)
-      end
+      credentials.set(template_registration.profile, template_registration.region)
       local refactor_operation = state.refactor_operation:get("main") or { mappings = {}, stack_definitions = {} }
       local exists_err, exists =
         util.cfn.resource_exists_in_stack(template_registration.stack_name, old_name, refactor_operation)

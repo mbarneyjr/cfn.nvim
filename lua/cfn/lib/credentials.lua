@@ -9,70 +9,90 @@ local SAFETY_BUFFER_SEC = 300
 
 ---@type table<string, uv.uv_timer_t>
 local refresh_timers = {}
-local current_profile = nil
+local current_key = nil
 
-local function stop_timer(profile)
-  local t = refresh_timers[profile]
+---@param profile string
+---@param region? string
+---@return string
+local function cache_key(profile, region)
+  return profile .. "/" .. (region or "")
+end
+
+---@param credentials CfnCredentials
+---@return boolean
+local function expires_soon(credentials)
+  if credentials.expiryEpoch == nil or credentials.expiryEpoch == 0 then
+    return false
+  end
+  return credentials.expiryEpoch - os.time() < SAFETY_BUFFER_SEC
+end
+
+local function stop_timer(key)
+  local t = refresh_timers[key]
   if t then
     t:stop()
     t:close()
-    refresh_timers[profile] = nil
+    refresh_timers[key] = nil
   end
 end
 
-local function schedule_refresh(profile, expiryEpoch)
-  stop_timer(profile)
+local function schedule_refresh(key, profile, region, expiryEpoch)
+  stop_timer(key)
   local ms = math.max(0, (expiryEpoch - os.time() - SAFETY_BUFFER_SEC) * 1000)
-  refresh_timers[profile] = vim.defer_fn(function()
+  refresh_timers[key] = vim.defer_fn(function()
     coroutine.wrap(function()
-      local err, creds = cli.profile.credentials(profile)
+      local err, creds = cli.profile.credentials(profile, region)
       if err or creds == nil then
         return
       end
-      state.credentials:set(profile, creds)
-      if current_profile == profile then
+      state.credentials:set(key, creds)
+      if current_key == key then
         lsp.credentials.iam.update(creds.jwe)
       end
       if creds.expiryEpoch and creds.expiryEpoch > 0 then
-        schedule_refresh(profile, creds.expiryEpoch)
+        schedule_refresh(key, profile, region, creds.expiryEpoch)
       end
     end)()
   end, ms)
 end
 
 ---@param profile? string
-function M.cancel(profile)
+---@param region? string
+function M.cancel(profile, region)
   if profile then
-    stop_timer(profile)
-    state.credentials:remove(profile)
-    if current_profile == profile then
-      current_profile = nil
+    local key = cache_key(profile, region)
+    stop_timer(key)
+    state.credentials:remove(key)
+    if current_key == key then
+      current_key = nil
     end
   else
-    for p in pairs(refresh_timers) do
-      stop_timer(p)
+    for key in pairs(refresh_timers) do
+      stop_timer(key)
     end
-    current_profile = nil
+    current_key = nil
   end
 end
 
 ---@param profile string
+---@param region? string overrides the profile's configured region
 ---@param refresh? boolean
 ---@return string? err
 ---@return CfnCredentials? credentials
-function M.set(profile, refresh)
+function M.set(profile, region, refresh)
   assert(coroutine.running(), "cfn.lib.credentials.set must be called from a coroutine")
 
-  local cached = state.credentials:get(profile)
+  local key = cache_key(profile, region)
+  local cached = state.credentials:get(key)
 
-  if refresh or cached == nil or (cached.expiryEpoch - os.time() > SAFETY_BUFFER_SEC) then
+  if refresh or cached == nil or expires_soon(cached) then
     local p = progress.send("loading credentials for profile " .. profile, true, {
       title = profile,
       status = "running",
     })
 
     progress.send("resolving credentials for profile", true, p)
-    local err, creds = cli.profile.credentials(profile)
+    local err, creds = cli.profile.credentials(profile, region)
     if err or creds == nil then
       p.status = "failed"
       progress.send("failed to resolve credentials for profile", true, p)
@@ -88,30 +108,25 @@ function M.set(profile, refresh)
     end
 
     p.status = "success"
-    state.credentials:set(profile, creds)
-    current_profile = profile
+    state.credentials:set(key, creds)
+    current_key = key
 
     if creds.expiryEpoch and creds.expiryEpoch > 0 then
-      schedule_refresh(profile, creds.expiryEpoch)
+      schedule_refresh(key, profile, region, creds.expiryEpoch)
     end
-  elseif profile ~= current_profile then
+  elseif key ~= current_key then
     local push_err = lsp.credentials.iam.update(cached.jwe)
     if push_err then
       return push_err, nil
     end
-    current_profile = profile
+    current_key = key
   end
 
   progress.send("resolved credentials for profile " .. profile, true, {
     title = profile,
     status = "success",
   })
-  return nil, state.credentials:get(profile)
-end
-
----@return string?
-function M.current_profile()
-  return current_profile
+  return nil, state.credentials:get(key)
 end
 
 return M

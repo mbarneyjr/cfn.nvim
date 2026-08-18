@@ -35,9 +35,7 @@ function M.import()
     if template_registration == nil then
       return notify.error("current template is not registered, please run :Cfn template register")
     end
-    if credentials.current_profile() ~= template_registration.profile then
-      credentials.set(template_registration.profile)
-    end
+    credentials.set(template_registration.profile, template_registration.region)
 
     local resources_to_import_registration = state.resources_to_import:get(template_path)
     if resources_to_import_registration == nil then

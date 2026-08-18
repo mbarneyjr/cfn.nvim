@@ -22,7 +22,8 @@ end
 
 ---@param profile string | nil
 ---@param stack_name string | nil
-function M.register(profile, stack_name)
+---@param region string | nil overrides the profile's configured region
+function M.register(profile, stack_name, region)
   coroutine.wrap(function()
     local template_path_err, template_path = buffer.get_current_buffer_template_path()
     if template_path_err ~= nil or not template_path then
@@ -50,11 +51,29 @@ function M.register(profile, stack_name)
         return notify.warn("template registration cancelled: no profile chosen")
       end
     end
-    local creds_err, creds = credentials.set(profile)
+    local creds_err, creds = credentials.set(profile, region)
     if creds_err or not creds then
       return notify.error(
         "error setting credentials for profile " .. profile .. ": " .. (creds_err or "no credentials returned")
       )
+    end
+    if not region then
+      local default_region = creds.region
+      if current_registration ~= nil and current_registration.profile == profile then
+        default_region = current_registration.region
+      end
+      region = ui.input({ prompt = "AWS region", default = default_region })
+      if not region or region == "" then
+        return notify.warn("template registration cancelled: no region chosen")
+      end
+      if region ~= creds.region then
+        creds_err, creds = credentials.set(profile, region)
+        if creds_err or not creds then
+          return notify.error(
+            "error setting credentials for region " .. region .. ": " .. (creds_err or "no credentials returned")
+          )
+        end
+      end
     end
     if not stack_name then
       local err, stacks = lsp.cfn.stacks_all({ statusToExclude = util.cfn.UNAVAILABLE_STACK_STATUSES })
@@ -123,7 +142,7 @@ function M.register(profile, stack_name)
       stack_name = stack_name,
       artifact_bucket_name = artifact_bucket_name,
     })
-    notify.info("registering template: " .. profile .. "/" .. stack_name)
+    notify.info("registering template: " .. profile .. "/" .. creds.region .. "/" .. stack_name)
   end)()
 end
 

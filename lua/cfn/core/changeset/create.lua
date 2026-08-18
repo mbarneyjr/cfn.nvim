@@ -268,9 +268,7 @@ function M.create()
       return
     end
 
-    if credentials.current_profile() ~= registration.profile then
-      credentials.set(registration.profile)
-    end
+    credentials.set(registration.profile, registration.region)
 
     local stack_description_err, stack_description = lsp.stack.describe({ stackName = registration.stack_name })
     if stack_description_err ~= nil then

@@ -74,9 +74,7 @@ function M.move()
     if registration == nil then
       return notify.error("current template is not registered, please run :Cfn template register")
     end
-    if credentials.current_profile() ~= registration.profile then
-      credentials.set(registration.profile)
-    end
+    credentials.set(registration.profile, registration.region)
     local refactor_operation = state.refactor_operation:get("main")
     if refactor_operation == nil then
       refactor_operation = {

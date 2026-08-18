@@ -20,10 +20,15 @@ end
 ---@field expiryEpoch? integer
 
 ---@param profile string
+---@param region? string overrides the profile's configured region
 ---@return string? err
 ---@return CfnCredentials? credentials
-function M.credentials(profile)
-  return rpc.run({ "profile", "credentials", "--profile", profile, "--key", state.encryption_key() })
+function M.credentials(profile, region)
+  local args = { "profile", "credentials", "--profile", profile, "--key", state.encryption_key() }
+  if region ~= nil and region ~= "" then
+    vim.list_extend(args, { "--region", region })
+  end
+  return rpc.run(args)
 end
 
 return M

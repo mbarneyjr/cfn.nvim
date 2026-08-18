@@ -18,7 +18,7 @@ function M.load()
       return
     end
     local credentials = require("cfn.lib.credentials")
-    credentials.set(template_registration.profile)
+    credentials.set(template_registration.profile, template_registration.region)
   end)()
 end
 

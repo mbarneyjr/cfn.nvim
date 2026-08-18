@@ -8,7 +8,9 @@ function M.register(opts)
   local profile = opts.args[1]
   ---@type string | nil
   local stack_name = opts.args[2]
-  template.register(profile, stack_name)
+  ---@type string | nil
+  local region = opts.args[3]
+  template.register(profile, stack_name, region)
 end
 
 ---@param _ CfnHandlerOpts

@@ -212,9 +212,7 @@ local function choose_value(params, template_path)
       notify.error("current template is not registered, please run :Cfn template register")
       return
     end
-    if credentials.current_profile() ~= registration.profile then
-      credentials.set(registration.profile)
-    end
+    credentials.set(registration.profile, registration.region)
     local err, resources = lsp.resources.list_resources_all({ { resourceType = CFN_PARAMETER_TYPE_MAP[param_type] } })
     if err ~= nil or resources == nil or #resources == 0 then
       vim.notify("could not list " .. param_type .. " resources: " .. (err or "no resources"), vim.log.levels.ERROR)

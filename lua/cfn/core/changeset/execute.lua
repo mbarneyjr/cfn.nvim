@@ -143,9 +143,7 @@ function M.execute()
       return
     end
 
-    if credentials.current_profile() ~= registration.profile then
-      credentials.set(registration.profile)
-    end
+    credentials.set(registration.profile, registration.region)
 
     local active_changeset = state.active_changeset:get(vim.fn.fnamemodify(template_path, ":."))
     if active_changeset == nil then

@@ -24,7 +24,7 @@
             pname = "cfn-nvim";
             version = "0.0.0";
             src = ./.;
-            vendorHash = "sha256-X0zCwxCbIPVFW7AhKCPJUrs41FqW9MTEPyqJBraCXLk=";
+            vendorHash = "sha256-mH14zisCXtgEzRBbZFXRqNNpj7LTU06m4a5IJMkd7d4=";
             subPackages = [ "." ];
             postInstall = ''
               mv $out/bin/cfn.nvim $out/bin/cfn-nvim

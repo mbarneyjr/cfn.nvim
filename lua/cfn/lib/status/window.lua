@@ -130,5 +130,6 @@ state.template_registration:on_change(M.render)
 state.active_changeset:on_change(M.render)
 state.resources_to_import:on_change(M.render)
 state.refactor_operation:on_change(M.render)
+state.active_refactor:on_change(M.render)
 
 return M

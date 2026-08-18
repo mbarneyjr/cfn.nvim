@@ -8,7 +8,6 @@ function M.get_status_window_data(content, highlights, _)
   if refactor_operation == nil or #refactor_operation.mappings == 0 then
     return
   end
-
   table.insert(content, "")
 
   local title = "current stack refactor:"
@@ -18,6 +17,10 @@ function M.get_status_window_data(content, highlights, _)
     col_end = #title,
     hl_group = "Label",
   })
+  local active_refactor = state.active_refactor:get("main")
+  if active_refactor ~= nil then
+    title = title .. " " .. active_refactor.stack_refactor_id
+  end
   table.insert(content, title)
 
   for _, mapping in ipairs(refactor_operation.mappings) do

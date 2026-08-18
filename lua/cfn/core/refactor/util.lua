@@ -1,6 +1,77 @@
 local M = {}
 
+local cli = require("cfn.lib.cli")
+local progress = require("cfn.lib.progress")
+local sleep = require("cfn.lib.sleep")
+local state = require("cfn.lib.state")
 local util = require("cfn.lib.util")
+
+---@param refactor_operation RefactorMappingRegistration
+---@return string? err
+---@return TemplateRegistration? registration
+function M.get_registration(refactor_operation)
+  ---@type TemplateRegistration?
+  local result
+  for _, stack_definition in ipairs(refactor_operation.stack_definitions) do
+    local registration = state.template_registration:get(stack_definition.template_path)
+    if registration == nil then
+      return "template is not registered: " .. stack_definition.template_path, nil
+    end
+    if result ~= nil and (result.profile ~= registration.profile or result.region ~= registration.region) then
+      return "all stacks in a refactor must use the same profile and region", nil
+    end
+    result = registration
+  end
+  return nil, result
+end
+
+---@param refactor_operation RefactorMappingRegistration
+---@return string? template_path the first template with unsaved changes
+function M.unsaved_template(refactor_operation)
+  ---@type { [string]: boolean }
+  local modified = {}
+  for _, buffer in ipairs(vim.fn.getbufinfo({ bufmodified = 1 })) do
+    modified[buffer.name] = true
+  end
+  for _, stack_definition in ipairs(refactor_operation.stack_definitions) do
+    if modified[stack_definition.template_path] then
+      return stack_definition.template_path
+    end
+  end
+end
+
+---@param active_refactor ActiveRefactor
+---@param message string the operation name, for example `stack refactor creation`
+---@param complete string the status that means the operation succeeded
+---@param select fun(described: CliRefactorDescribeResult): string, string? the status to wait on, and its reason
+---@return boolean success
+function M.wait(active_refactor, message, complete, select)
+  local progress_report = progress.send(message .. " in progress", true, {
+    title = active_refactor.stack_refactor_id,
+    status = "running",
+  })
+  while true do
+    local err, described =
+      cli.refactor.describe(active_refactor.profile, active_refactor.region, active_refactor.stack_refactor_id)
+    if err ~= nil or described == nil then
+      progress_report.status = "failed"
+      progress.send("error checking stack refactor status: " .. (err or "no result from cli"), true, progress_report)
+      return false
+    end
+    local status, reason = select(described)
+    if status ~= "AVAILABLE" and not status:find("_IN_PROGRESS$") then
+      if status ~= complete then
+        progress_report.status = "failed"
+        progress.send(message .. " failed: " .. (reason or status), true, progress_report)
+        return false
+      end
+      progress_report.status = "success"
+      progress.send(message .. " complete", true, progress_report)
+      return true
+    end
+    sleep.sleep(1000)
+  end
+end
 
 ---@param stack_name string
 ---@param refactor_operation RefactorMappingRegistration
@@ -86,6 +157,8 @@ function M.reconcile_move(new_mapping, refactor_operation)
   if not destination_path then
     return "destination stack is not registered: " .. new_mapping.destination.stack_name
   end
+
+  state.active_refactor:remove("main")
 
   if override_index ~= nil then
     local existing = refactor_operation.mappings[override_index]

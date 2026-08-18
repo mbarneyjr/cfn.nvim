@@ -31,6 +31,13 @@ M.resources_to_import = Map.new()
 ---@type Map<RefactorMappingRegistration>
 M.refactor_operation = Map.new()
 
+---@class ActiveRefactor
+---@field stack_refactor_id string
+---@field profile string
+---@field region string
+---@type Map<ActiveRefactor>
+M.active_refactor = Map.new()
+
 ---@class ActiveChangeSet
 ---@field stackName string
 ---@field changeSetName string

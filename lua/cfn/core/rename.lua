@@ -3,6 +3,9 @@ local M = {}
 local notify = require("cfn.lib.notify")
 local ui = require("cfn.lib.ui")
 local treesitter = require("cfn.lib.treesitter")
+local refactor_util = require("cfn.core.refactor.util")
+local state = require("cfn.lib.state")
+local util = require("cfn.lib.util")
 
 ---@param a BufferRange
 ---@param b BufferRange
@@ -66,6 +69,32 @@ function M.rename()
 
     for _, range in ipairs(ranges) do
       replace_range(bufnr, range, new_name)
+    end
+
+    local _, template_registration, _ = util.state.get_template_registration()
+    if template_registration ~= nil then
+      local refactor_operation = state.refactor_operation:get("main") or { mappings = {}, stack_definitions = {} }
+      local exists_err, exists =
+        util.cfn.resource_exists_in_stack(template_registration.stack_name, old_name, refactor_operation)
+      if exists_err ~= nil then
+        notify.warn("not registering stack refactor: " .. exists_err)
+      elseif exists then
+        local err = refactor_util.reconcile_move({
+          source = {
+            stack_name = template_registration.stack_name,
+            logical_id = old_name,
+          },
+          destination = {
+            stack_name = template_registration.stack_name,
+            logical_id = new_name,
+          },
+        }, refactor_operation)
+        if err ~= nil then
+          notify.warn("not registering stack refactor: " .. err)
+        else
+          state.refactor_operation:set("main", refactor_operation)
+        end
+      end
     end
 
     notify.info(

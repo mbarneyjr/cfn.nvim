@@ -20,4 +20,20 @@ function M.artifacts(uri)
   return nil, result
 end
 
+---@class CfnLspAuthoredResource
+---@field logicalId string
+---@field type string
+
+---@param uri string
+---@return string? err
+---@return CfnLspAuthoredResource[]? resources
+function M.authored_resources(uri)
+  ---@type lsp.ResponseError?, CfnLspAuthoredResource[]?
+  local err, result = rpc.request("aws/cfn/template/resources/authored/v2", uri)
+  if err or result == nil then
+    return err and err.message or "no result", nil
+  end
+  return nil, result
+end
+
 return M

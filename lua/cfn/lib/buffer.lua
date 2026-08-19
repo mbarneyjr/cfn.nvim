@@ -23,4 +23,19 @@ function M.get_current_buffer_template_path(bufnr)
   return nil, template_path
 end
 
+---@param template_path string
+---@return string? err
+---@return integer? bufnr
+function M.load_template(template_path)
+  local bufnr = vim.fn.bufadd(template_path)
+  if not vim.api.nvim_buf_is_loaded(bufnr) then
+    vim.fn.bufload(bufnr)
+  end
+  local err = M.get_current_buffer_template_path(bufnr)
+  if err ~= nil then
+    return err .. ": " .. template_path, nil
+  end
+  return nil, bufnr
+end
+
 return M

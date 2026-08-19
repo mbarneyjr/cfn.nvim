@@ -18,6 +18,11 @@ function M.move(_)
 end
 
 ---@param _ CfnHandlerOpts
+function M.refresh(_)
+  refactor.refresh()
+end
+
+---@param _ CfnHandlerOpts
 function M.clear(_)
   refactor.clear()
 end

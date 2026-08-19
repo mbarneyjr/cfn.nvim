@@ -13,6 +13,7 @@ Neovim plugin for working with AWS CloudFormation templates.
 - ChangeSet Opening: Open the changeset in the AWS Console: `:Cfn changeset open`
 - Template Highlighting: Show imported resources, change set actions, and live status during stack operations.
 - StackRefactor Moving: Move a resource from one logical ID in one stack to another: `:Cfn refactor move`
+- StackRefactor Refresh: Infer moves by comparing the templates against the deployed stacks: `:Cfn refactor refresh`
 - StackRefactor Creation: Create a new StackRefactor based on resource moves/renames: `:Cfn refactor create`
 - StackRefactor Execution: Execute a StackRefactor and stream live resource deployment status: `:Cfn refactor execute`
 - Parameter/Tag Hooks: Pre-populate parameter and tag forms with values returned from a lua function.

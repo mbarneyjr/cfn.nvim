@@ -25,6 +25,7 @@ M.resources_to_import = Map.new()
 ---@class RefactorResourceMapping
 ---@field source RefactorResourceMappingLocation
 ---@field destination RefactorResourceMappingLocation
+---@field inferred? boolean the mapping was derived by `:Cfn refactor refresh`, not entered by hand
 ---@class RefactorMappingRegistration
 ---@field stack_definitions RefactorStackDefinition[]
 ---@field mappings RefactorResourceMapping[]

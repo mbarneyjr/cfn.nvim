@@ -65,6 +65,16 @@ function M.get_status_window_data(content, highlights, _)
     })
     line_content = line_content .. destination
 
+    if mapping.inferred then
+      table.insert(highlights, {
+        line = current_line_number,
+        col_start = #line_content,
+        col_end = #line_content + #" (inferred)",
+        hl_group = "Comment",
+      })
+      line_content = line_content .. " (inferred)"
+    end
+
     table.insert(content, line_content)
   end
 end

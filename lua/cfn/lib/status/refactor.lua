@@ -46,7 +46,7 @@ function M.get_status_window_data(builder)
     if open_sections.stack_definitions then
       for _, stack_definition in ipairs(refactor_operation.stack_definitions) do
         builder:line({
-          { "    - " .. stack_definition.stack_name .. " ", "String" },
+          { "      " .. stack_definition.stack_name .. " ", "String" },
           { "(" .. stack_definition.template_path .. ")", "Comment" },
         })
       end
@@ -58,7 +58,7 @@ function M.get_status_window_data(builder)
     if open_sections.resource_mappings then
       for _, mapping in ipairs(refactor_operation.mappings) do
         builder:line({
-          { "    " .. mapping.source.stack_name .. ":" },
+          { "      " .. mapping.source.stack_name .. ":" },
           { mapping.source.logical_id, "String" },
           { " -> " .. mapping.destination.stack_name .. ":" },
           { mapping.destination.logical_id, "String" },

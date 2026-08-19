@@ -171,25 +171,15 @@ require("cfn").setup({
 
 ## Development
 
-Source the following lua code.
-It's recommended to add it to your `.nvim.lua` (assuming you have `exrc` enabled).
+To test this plugin with a fresh Neovim install, you can use the `sandbox` Nix dev shell.
+Running `nix develop .#sandbox` gives you a clean `nvim` and all of the tools the plugin needs.
+`nvim` is a wrapper that points the XDG directories at the `sandbox/.local` directory.
+It reads its config from `sandbox/`, reading [`./sandbox/nvim/init.lua`](`./sandbox/nvim/init.lua`) by default.
+Your own Neovim config and state stay untouched, and no other program in the shell sees the redirect.
+The wrapper loads this plugin via `vim.pack`, which clones it as a git repository.
+To test an update commit your change and then run `:lua vim.pack.update()` to pull it in and rebuild.
 
-```lua
-local here = vim.fn.fnamemodify(debug.getinfo(1, "s").source:sub(2), ":p:h")
-vim.opt.runtimepath:prepend(here)
-
-vim.lsp.config("cfn_lsp", {
-  init_options = {
-    aws = {
-      encryption = { key = require("cfn").encryption_key() },
-    },
-  },
-  -- ...other settings as needed
-})
-vim.lsp.enable("cfn_lsp")
-require("cfn").setup({
-  bin = {
-    path = "./result/bin/cfn-nvim",
-  },
-})
+```sh
+nix develop .#sandbox
+nvim template.yml
 ```

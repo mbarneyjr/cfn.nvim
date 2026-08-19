@@ -2,6 +2,7 @@ local M = {}
 
 local state = require("cfn.lib.state")
 local config = require("cfn.lib.config")
+local builder = require("cfn.lib.status.builder")
 local intro = require("cfn.lib.status.intro")
 local template_registrations = require("cfn.lib.status.template_registrations")
 local refactor = require("cfn.lib.status.refactor")
@@ -19,7 +20,7 @@ local refactor = require("cfn.lib.status.refactor")
 
 ---@alias InteractivityMap { [integer]: InteractivityHandlers }
 
----@alias StatusWindowDataHandler fun(content: string[], highlights: Highlight[], interactivity_map: InteractivityMap)
+---@alias StatusWindowDataHandler fun(builder: StatusBuilder)
 
 local NS = vim.api.nvim_create_namespace("cfn.status")
 ---@type integer?
@@ -104,20 +105,18 @@ function M.render()
   if not window_is_open() then
     return
   end
-  ---@type string[]
-  local content = {}
-  ---@type Highlight[]
-  local highlights = {}
-  interactivity_map = {}
+  local b = builder.new()
 
-  intro.get_status_window_data(content, highlights, interactivity_map)
-  template_registrations.get_status_window_data(content, highlights, interactivity_map)
-  refactor.get_status_window_data(content, highlights, interactivity_map)
+  intro.get_status_window_data(b)
+  template_registrations.get_status_window_data(b)
+  refactor.get_status_window_data(b)
+
+  interactivity_map = b.interactivity_map
 
   vim.bo[bufnr].modifiable = true
-  vim.api.nvim_buf_set_lines(assert(bufnr), 0, -1, false, content)
+  vim.api.nvim_buf_set_lines(assert(bufnr), 0, -1, false, b.content)
   vim.api.nvim_buf_clear_namespace(assert(bufnr), NS, 0, -1)
-  for _, hl in ipairs(highlights) do
+  for _, hl in ipairs(b.highlights) do
     vim.api.nvim_buf_set_extmark(assert(bufnr), NS, hl.line, hl.col_start, {
       end_col = hl.col_end,
       hl_group = hl.hl_group,

@@ -22,4 +22,16 @@ function M.clear(_)
   refactor.clear()
 end
 
+M.stack = {}
+
+---@param _ CfnHandlerOpts
+function M.stack.add(_)
+  refactor.add_stack()
+end
+
+---@param _ CfnHandlerOpts
+function M.stack.remove(_)
+  refactor.remove_stack()
+end
+
 return M

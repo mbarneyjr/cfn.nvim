@@ -3,6 +3,17 @@ vim.o.number = true
 vim.o.signcolumn = "yes"
 vim.o.swapfile = false
 
+vim.pack.add({
+  { src = "https://github.com/folke/tokyonight.nvim" },
+  { src = "https://github.com/folke/snacks.nvim" },
+}, { confirm = false })
+vim.cmd.colorscheme("tokyonight")
+
+require("snacks").setup({
+  picker = { enable = true },
+  input = { enable = true },
+})
+
 vim.treesitter.language.register("yaml", "yaml.cloudformation")
 vim.treesitter.language.register("json", "json.cloudformation")
 

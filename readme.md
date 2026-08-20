@@ -2,6 +2,8 @@
 
 Neovim plugin for working with AWS CloudFormation templates.
 
+![example-usage](./docs/demo/create-changeset/create-changeset.gif)
+
 ## Features
 
 - Status Window: A live view into registered templates/stacks, imports, changesets, and refactors: `:Cfn status`
@@ -17,6 +19,8 @@ Neovim plugin for working with AWS CloudFormation templates.
 - StackRefactor Creation: Create a new StackRefactor based on resource moves/renames: `:Cfn refactor create`
 - StackRefactor Execution: Execute a StackRefactor and stream live resource deployment status: `:Cfn refactor execute`
 - Parameter/Tag Hooks: Pre-populate parameter and tag forms with values returned from a lua function.
+
+For demo gifs of these features, see [docs/demo/readme.md](./docs/demo/readme.md).
 
 ## Requirements
 

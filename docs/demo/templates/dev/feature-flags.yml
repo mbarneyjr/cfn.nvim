@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  NewCheckoutFlag:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: "false"

@@ -4,7 +4,12 @@ let
 in
 {
   perSystem =
-    { config, pkgs, lib, ... }:
+    {
+      config,
+      pkgs,
+      lib,
+      ...
+    }:
     {
       packages.cfn-nvim = pkgs.buildGoModule {
         pname = "cfn-nvim";
@@ -45,7 +50,10 @@ in
       packages.default = config.packages.cfn-nvim;
 
       devShells.default = pkgs.mkShell {
-        packages = [ pkgs.go ];
+        packages = [
+          pkgs.go
+          pkgs.vhs
+        ];
       };
     };
 }

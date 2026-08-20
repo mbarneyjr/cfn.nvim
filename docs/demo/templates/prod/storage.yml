@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Versioning:
+    Type: String
+    AllowedValues: [Enabled, Suspended]
+    Default: Enabled
+  RetentionDays:
+    Type: Number
+    MinValue: 1
+    MaxValue: 3650
+    Default: 30
+  Environment:
+    Type: String
+    AllowedPattern: '^(dev|staging|prod)$'
+    ConstraintDescription: must be dev, staging, or prod
+    Default: prod
+
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: !Ref Versioning
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-noncurrent
+            Status: Enabled
+            ExpirationInDays: !Ref RetentionDays
+      Tags:
+        - Key: environment
+          Value: !Ref Environment

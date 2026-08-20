@@ -4,6 +4,8 @@ local state = require("cfn.lib.state")
 local arrow = require("cfn.lib.status.builder").arrow
 
 ---@type { [string]: boolean }
+local open_sections = { templates = true }
+---@type { [string]: boolean }
 local open_templates = {}
 ---@type { [string]: boolean }
 local open_imports = {}
@@ -34,11 +36,35 @@ end
 
 ---@type StatusWindowDataHandler
 function M.get_status_window_data(builder)
-  for key, value in pairs(state.template_registration:list()) do
+  local template_registrations = state.template_registration:list()
+  if vim.tbl_isempty(template_registrations) then
+    builder:line({
+      { "no templates registered", "Comment" },
+    })
+    return
+  end
+
+  builder:line({
+    { arrow(open_sections.templates) .. " " },
+    { "templates:", "Label" },
+    { open_sections.templates and "" or " (" .. vim.tbl_count(template_registrations) .. ")", "Comment" },
+  }, {
+    open = function()
+      open_sections.templates = true
+    end,
+    close = function()
+      open_sections.templates = false
+    end,
+  })
+  if not open_sections.templates then
+    return
+  end
+
+  for key, value in pairs(template_registrations) do
     local path = vim.fn.fnamemodify(key, ":.")
 
     builder:line({
-      { arrow(open_templates[path]) .. " " },
+      { "  " .. arrow(open_templates[path]) .. " " },
       { path, "String" },
       { ": " },
       { value.stack_name, "Normal" },
@@ -59,17 +85,17 @@ function M.get_status_window_data(builder)
     if open_templates[path] then
       if value.artifact_bucket_name then
         builder:line({
-          { "    " },
-          { "saving artifacts to", "Label" },
-          { ": s3://" .. value.artifact_bucket_name, "Normal" },
+          { "      " },
+          { "saving artifacts to" },
+          { ": s3://" .. value.artifact_bucket_name, "String" },
         })
       end
 
       local resources_to_import = state.resources_to_import:get(key)
       if resources_to_import ~= nil and #resources_to_import.resources > 0 then
         builder:line({
-          { "  " .. arrow(open_imports[path]) .. " " },
-          { "resources to import (" .. #resources_to_import.resources .. ")", "Label" },
+          { "    " .. arrow(open_imports[path]) .. " " },
+          { "resources to import (" .. #resources_to_import.resources .. ")" },
         }, {
           open = function()
             open_imports[path] = true
@@ -82,9 +108,10 @@ function M.get_status_window_data(builder)
         if open_imports[path] then
           for _, r in ipairs(resources_to_import.resources) do
             builder:line({
-              { "      " },
-              { r.LogicalResourceId .. " (" .. r.ResourceType .. ")", "Label" },
-              { ": " .. resource_identifier_to_string(r.ResourceIdentifier), "Normal" },
+              { "        " },
+              { r.LogicalResourceId },
+              { " (" .. r.ResourceType .. ")", "Comment" },
+              { ": " .. resource_identifier_to_string(r.ResourceIdentifier), "String" },
             })
           end
         end
@@ -93,9 +120,9 @@ function M.get_status_window_data(builder)
       local active_changeset = state.active_changeset:get(path)
       if active_changeset ~= nil then
         builder:line({
-          { "    " },
-          { "loaded changeset", "Label" },
-          { ": " .. active_changeset.changeSetName, "Normal" },
+          { "      " },
+          { "loaded changeset" },
+          { ": " .. active_changeset.changeSetName, "String" },
         })
       end
     end

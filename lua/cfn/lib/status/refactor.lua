@@ -4,26 +4,7 @@ local state = require("cfn.lib.state")
 local arrow = require("cfn.lib.status.builder").arrow
 
 ---@type { [string]: boolean }
-local open_sections = { stack_definitions = true, resource_mappings = true }
-
----@param builder StatusBuilder
----@param section string
----@param label string
----@param count integer
-local function section_header(builder, section, label, count)
-  builder:line({
-    { "  " .. arrow(open_sections[section]) .. " " },
-    { label .. ":", "Label" },
-    { open_sections[section] and "" or " (" .. count .. ")", "Comment" },
-  }, {
-    open = function()
-      open_sections[section] = true
-    end,
-    close = function()
-      open_sections[section] = false
-    end,
-  })
-end
+local open_sections = { stack_refactor = true, stack_definitions = true, resource_mappings = true }
 
 ---@type StatusWindowDataHandler
 function M.get_status_window_data(builder)
@@ -37,12 +18,37 @@ function M.get_status_window_data(builder)
 
   local active_refactor = state.active_refactor:get("main")
   builder:line({
+    { arrow(open_sections.stack_refactor) .. " " },
     { "stack refactor:", "Label" },
-    { active_refactor and " " .. active_refactor.stack_refactor_id or "" },
+    { active_refactor and (" (" .. active_refactor.stack_refactor_id .. ")") or "", "Comment" },
+  }, {
+    open = function()
+      open_sections.stack_refactor = true
+    end,
+    close = function()
+      open_sections.stack_refactor = false
+    end,
   })
+  if not open_sections.stack_refactor then
+    return
+  end
 
   if #refactor_operation.stack_definitions > 0 then
-    section_header(builder, "stack_definitions", "stack definitions", #refactor_operation.stack_definitions)
+    builder:line({
+      { "  " .. arrow(open_sections.stack_definitions) .. " " },
+      { "stack definitions:" },
+      {
+        open_sections.stack_definitions and "" or " (" .. #refactor_operation.stack_definitions .. ")",
+        "Comment",
+      },
+    }, {
+      open = function()
+        open_sections.stack_definitions = true
+      end,
+      close = function()
+        open_sections.stack_definitions = false
+      end,
+    })
     if open_sections.stack_definitions then
       for _, stack_definition in ipairs(refactor_operation.stack_definitions) do
         builder:line({
@@ -54,7 +60,18 @@ function M.get_status_window_data(builder)
   end
 
   if #refactor_operation.mappings > 0 then
-    section_header(builder, "resource_mappings", "resource mappings", #refactor_operation.mappings)
+    builder:line({
+      { "  " .. arrow(open_sections.resource_mappings) .. " " },
+      { "resource mappings:" },
+      { open_sections.resource_mappings and "" or " (" .. #refactor_operation.mappings .. ")", "Comment" },
+    }, {
+      open = function()
+        open_sections.resource_mappings = true
+      end,
+      close = function()
+        open_sections.resource_mappings = false
+      end,
+    })
     if open_sections.resource_mappings then
       for _, mapping in ipairs(refactor_operation.mappings) do
         builder:line({

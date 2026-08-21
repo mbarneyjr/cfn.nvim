@@ -14,6 +14,7 @@ in
           root = ../.;
           fileset = lib.fileset.unions [
             ../lua
+            ../doc/cfn.nvim.txt
             ../readme.md
           ];
         };

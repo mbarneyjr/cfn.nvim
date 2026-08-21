@@ -2,6 +2,7 @@ local sandbox = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h:h:
 local root = vim.fn.fnamemodify(sandbox, ":h")
 
 vim.opt.rtp:prepend(root)
+vim.cmd.helptags(vim.fs.joinpath(root, "doc"))
 
 local bin = vim.fs.joinpath(sandbox, "live", "bin")
 vim.fn.mkdir(bin, "p")

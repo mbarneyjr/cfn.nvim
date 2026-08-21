@@ -1,8 +1,11 @@
 # cfn.nvim
 
-Neovim plugin for working with AWS CloudFormation templates.
+Neovim plugin for working with AWS CloudFormation.
 
-![example-usage](./docs/demo/create-changeset/create-changeset.gif)
+`cfn.nvim` integrates Neovim with AWS CloudFormation.
+It performs actions such as template deployment to a live stack, facilitating StackRefactors, and renaming resources.
+
+![example-usage](./doc/demo/create-changeset/create-changeset.gif)
 
 ## Features
 
@@ -20,7 +23,7 @@ Neovim plugin for working with AWS CloudFormation templates.
 - StackRefactor Execution: Execute a StackRefactor and stream live resource deployment status: `:Cfn refactor execute`
 - Parameter/Tag Hooks: Pre-populate parameter and tag forms with values returned from a lua function.
 
-For demo gifs of these features, see [docs/demo/readme.md](./docs/demo/readme.md).
+For demo gifs of these features, see [doc/demo/readme.md](./doc/demo/readme.md).
 
 ## Requirements
 

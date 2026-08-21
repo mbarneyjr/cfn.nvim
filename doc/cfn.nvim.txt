@@ -1,0 +1,233 @@
+*cfn.nvim.txt*  Neovim plugin for working with AWS CloudFormation.
+
+Author: Michael Barney
+
+==============================================================================
+CONTENTS                                                     *cfn.nvim-contents*
+
+  Introduction ......................................... |cfn.nvim-introduction|
+  Setup ....................................................... |cfn.nvim-setup|
+  Commands ................................................. |cfn.nvim-commands|
+  Lua API ....................................................... |cfn.nvim-api|
+  Hooks ....................................................... |cfn.nvim-hooks|
+
+==============================================================================
+Introduction                                             *cfn.nvim-introduction*
+
+`cfn.nvim` integrates Neovim with AWS CloudFormation. It performs actions such
+as template deployment to a live stack, facilitating StackRefactors, and
+renaming resources.
+
+==============================================================================
+Setup                                                           *cfn.nvim-setup*
+
+>lua
+    require("cfn").setup()
+<
+
+All options are optional and shown here with their defaults:
+
+>lua
+    require("cfn").setup({
+      lsp_client_name = "cfn_lsp",
+      bin = {
+        path = nil, -- override path to the cfn-nvim binary
+      },
+      status_window = {
+        height = 15,
+      },
+      icons = {
+	arrow_closed = "",
+	arrow_open = "",
+      },
+      hooks = {
+        parameters = nil, -- fun(ctx: cfn.HookContext): table<string, string>?
+        tags = nil,       -- fun(ctx: cfn.HookContext): table<string, string>?
+      },
+    })
+<
+                                                *cfn.nvim-setup.lsp_client_name*
+lsp_client_name ~
+    Name of the configured LSP client for the language server.
+
+                                                       *cfn.nvim-setup.bin.path*
+bin.path ~
+    Override the path to the `cfn-nvim` binary. Not needed unless developing.
+
+                                           *cfn.nvim-setup.status_window.height*
+status_window.height ~
+    Height, in rows, of the status window.
+
+                                                          *cfn.nvim-setup.hooks*
+hooks.parameters, hooks.tags ~
+    Functions to pre-populate the parameter and tag forms at changeset
+    creation time. See |cfn.nvim-hooks|.
+
+==============================================================================
+Commands                                                     *cfn.nvim-commands*
+
+All commands are subcommands of `:Cfn`. Tab completion works at every level.
+
+*:Cfn_template_register*
+:Cfn template register {profile} {stack_name} {region}
+    Register the current template buffer to a profile, stack, and region.
+
+*:Cfn_template_unregister*
+:Cfn template unregister
+    Remove the template registration for the current buffer.
+
+*:Cfn_profile_load*
+:Cfn profile load
+    Load a registered AWS profile. This informs the CloudFormation language
+    server what credentials to use when calling its LSP methods.
+
+*:Cfn_status*
+:Cfn status
+    Toggle the status window: a live view of registered templates/stacks,
+    imports, changesets, and refactors.
+
+*:Cfn_rename*
+:Cfn rename
+    Rename a logical ID under the cursor and update all references in the
+    buffer. Use this instead of |vim.lsp.buf.rename()|; the CloudFormation
+    language server does not implement `textDocument/rename`.
+
+*:Cfn_import*
+:Cfn import
+    Import a physical resource into the stack.
+
+*:Cfn_unimport*
+:Cfn unimport
+    Remove a pending resource import from the template registration. This
+    means that the import will not be registered when you create a ChangeSet.
+
+*:Cfn_changeset_create*
+:Cfn changeset create
+    Create a changeset. Parameters and tags will be collected via input forms.
+    This will render changes to the template buffer via virtual text. The
+    ChangeSet will then be ready to be executed.
+
+
+*:Cfn_changeset_load*
+:Cfn changeset load
+    Load an existing changeset. This will render changes to the template
+    buffer via virtual text annotations. The ChangeSet will then be ready to
+    be executed.
+
+*:Cfn_changeset_unload*
+:Cfn changeset unload
+    Unload the current changeset. This removes template highlights from the
+    buffer. After unloading, the ChangeSet will not be ready to be executed
+    via this plugin.
+
+*:Cfn_changeset_execute*
+:Cfn changeset execute
+    Execute the currently-loaded changeset and stream live resource
+    deployment status. As deployment events stream in, resources updates will
+    be reflected as virtual text annotations.
+
+*:Cfn_changeset_open*
+:Cfn changeset open
+    Open the current changeset in the AWS Console. This will use the default
+    browser on your system.
+
+*:Cfn_refactor_create*
+:Cfn refactor create
+    Create a new StackRefactor from the pending resource moves/renames.
+
+*:Cfn_refactor_execute*
+:Cfn refactor execute
+    Execute the current StackRefactor and stream live resource deployment
+    status.
+
+*:Cfn_refactor_move*
+:Cfn refactor move
+    Move a resource from one logical ID in one stack to another. This
+    describes intent, it does not perform the move for you. Before creating
+    the Stack Refactor, be sure to move the resource or logical ID yourself.
+
+*:Cfn_refactor_refresh*
+:Cfn refactor refresh
+    Infer moves by comparing the templates against the deployed stacks.
+
+*:Cfn_refactor_clear*
+:Cfn refactor clear
+    Clear the pending refactor operation, including all moves and stack
+    definitions.
+
+*:Cfn_refactor_stack_add*
+:Cfn refactor stack add
+    Add a stack to the current StackRefactor. This is helpful to be used with
+    the `:Cfn refactor refresh` command.
+
+*:Cfn_refactor_stack_remove*
+:Cfn refactor stack remove
+    Remove a stack from the current Stack Refactor operation.
+
+==============================================================================
+Lua API                                                           *cfn.nvim-api*
+
+Core functionality is exposed via a Lua API under `require("cfn").fn`, for use
+in keymaps and autocmds:
+
+>lua
+    require("cfn").fn.register_template
+    require("cfn").fn.unregister_template
+    require("cfn").fn.load_profile
+    require("cfn").fn.toggle_status_window
+    require("cfn").fn.rename_resource
+    require("cfn").fn.create_changeset
+    require("cfn").fn.load_changeset
+    require("cfn").fn.unload_changeset
+    require("cfn").fn.execute_changeset
+    require("cfn").fn.open_changeset
+    require("cfn").fn.import_resource
+    require("cfn").fn.move_resource
+    require("cfn").fn.create_refactor
+    require("cfn").fn.execute_refactor
+    require("cfn").fn.clear_refactor
+    require("cfn").fn.get_status
+<
+
+==============================================================================
+Hooks                                                           *cfn.nvim-hooks*
+
+In `setup({})`, `hooks.parameters` and `hooks.tags` are user-defined functions that
+are used to pre-populate parameter and tag forms at changeset creation. Each
+hook receives a `cfn.HookContext` and returns a table of values.
+
+>lua
+    ---@alias CfnHook fun(ctx: cfn.HookContext): table<string, string>?
+
+    require("cfn").setup({
+      hooks = {
+        ---@type CfnHook
+        tags = function(ctx)
+          return {
+            key = "value",
+            region = ctx.region,
+            stack_name = ctx.stack_name,
+            profile = ctx.profile,
+            template_path = ctx.template_path,
+          }
+        end,
+        ---@type CfnHook
+        parameters = function(ctx)
+          return { key = "value" }
+        end,
+      },
+    })
+<
+
+cfn.HookContext fields:
+
+>lua
+    ---@class cfn.HookContext
+    ---@field template_path string
+    ---@field stack_name string
+    ---@field profile string
+    ---@field region string
+    ---@field stack? CfnLspDescribeStackData
+<
+
+vim:tw=78:ts=8:noet:ft=help:norl:

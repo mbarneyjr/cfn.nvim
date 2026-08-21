@@ -43,6 +43,7 @@ in
           description = "Helper CLI for the cfn.nvim Neovim plugin";
           mainProgram = "cfn-nvim";
           homepage = "https://github.com/mbarneyjr/cfn.nvim";
+          license = lib.licenses.mit;
           platforms = lib.platforms.unix;
         };
       };

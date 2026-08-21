@@ -23,6 +23,7 @@ in
         meta = {
           description = "Neovim plugin for working with AWS CloudFormation templates";
           homepage = "https://github.com/mbarneyjr/cfn.nvim";
+          license = lib.licenses.mit;
           platforms = lib.platforms.unix;
         };
       };

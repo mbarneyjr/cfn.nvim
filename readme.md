@@ -31,17 +31,6 @@ For demo gifs of these features, see [docs/demo/readme.md](./docs/demo/readme.md
 
 ## Installation
 
-The plugin needs the `cfn-nvim` helper binary.
-It finds the binary in this order:
-
-1. `bin.path` from `setup()`
-1. `bin/cfn-nvim` inside the plugin directory
-1. `cfn-nvim` on your `PATH`
-1. a copy downloaded from the GitHub release that matches the checked out tag
-
-A tagged install needs no extra setup.
-The plugin reads its version with `git describe --tags --exact-match` and downloads that version of the executable.
-
 With vim.pack:
 
 ```lua
@@ -58,8 +47,9 @@ With lazy.nvim:
 
 ### Install from main
 
-The plugin cannot pick a binary version when it is not checked out at a release tag.
-You must build the binary instead with `go`.
+The plugin depends on a helper binary.
+In a release install (`version = "*"`), the helper binary will be downloaded from GitHub releases.
+For installs from main, you must build the binary instead with `go`.
 Build it to `bin/cfn-nvim` inside the plugin directory, where the plugin looks for it.
 No `setup()` change is needed.
 
@@ -112,6 +102,13 @@ in
 
 ```lua
 require("cfn").setup()
+```
+
+With lazy.nvim, use `opts` instead.
+lazy.nvim passes it to `require("cfn").setup()`:
+
+```lua
+{ "mbarneyjr/cfn.nvim", version = "*", opts = {} }
 ```
 
 See [config.lua](./lua/cfn/lib/config.lua) for all available configuration options.

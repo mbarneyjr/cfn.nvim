@@ -111,7 +111,30 @@ lazy.nvim passes it to `require("cfn").setup()`:
 { "mbarneyjr/cfn.nvim", version = "*", opts = {} }
 ```
 
-See [config.lua](./lua/cfn/lib/config.lua) for all available configuration options.
+All options are optional and shown here with their defaults:
+
+```lua
+require("cfn").setup({
+  lsp_client_name = "cfn_lsp",
+  bin = {
+    path = nil, -- override path to the cfn-nvim binary
+  },
+  status_window = {
+    height = 15,
+  },
+  icons = {
+    arrow_closed = "",
+    arrow_open = "",
+  },
+  hooks = {
+    -- hooks to pre-populate the parameter and tag forms at ChangeSet creation time
+    parameters = nil, -- fun(ctx: cfn.HookContext): table<string, string>?
+    tags = nil, -- fun(ctx: cfn.HookContext): table<string, string>?
+  },
+})
+```
+
+See [config.lua](./lua/cfn/lib/config.lua) for field-level documentation.
 
 ## Keymaps
 

@@ -200,6 +200,7 @@ Each shell gives you a clean `nvim` and all of the tools the plugin needs.
 Every shell installs the plugin with a different plugin manager or source:
 
 - `nix develop .#sandbox-dev`: package the plugin with `vim.pack` from this repository, built from source
+- `nix develop .#sandbox-live`: load the plugin straight off this working tree, no clone or commit needed
 - `nix develop .#sandbox-release`: package the plugin with `vim.pack` from the newest release tag on GitHub
 - `nix develop .#sandbox-lazy-dev`: package the plugin with `lazy.nvim` from this repository, built from source
 - `nix develop .#sandbox-lazy-release`: package the plugin with `lazy.nvim` from the newest release tag on GitHub
@@ -208,8 +209,10 @@ In each shell `nvim` is a wrapper that points every XDG directory at that shell'
 Your own Neovim config and state stay untouched, and no other program in the shell sees the redirect.
 The shared editor config is in [`sandbox/common.lua`](./sandbox/common.lua).
 
-The plugin managers clone this repository, so they do not see your uncommitted work.
-To test a change, commit it and then update the plugin (`:lua vim.pack.update()` or `:Lazy update`).
+The `dev`, `release`, and `lazy-*` sandbox shells install the plugin through a plugin manager.
+They clone this repository and so does not see your uncommitted work.
+The `live` shell instead prepends this repository to `runtimepath` directly, so Lua changes apply immediately on restart.
+It rebuilds the Go CLI on every startup.
 
 ```sh
 nix develop .#sandbox-dev

@@ -47,6 +47,7 @@
     in
     {
       devShells.sandbox-dev = mkSandbox "dev";
+      devShells.sandbox-live = mkSandbox "live";
       devShells.sandbox-release = mkSandbox "release";
       devShells.sandbox-lazy-dev = mkSandbox "lazy-dev";
       devShells.sandbox-lazy-release = mkSandbox "lazy-release";

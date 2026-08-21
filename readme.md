@@ -175,15 +175,23 @@ require("cfn").setup({
 
 ## Development
 
-To test this plugin with a fresh Neovim install, you can use the `sandbox` Nix dev shell.
-Running `nix develop .#sandbox` gives you a clean `nvim` and all of the tools the plugin needs.
-`nvim` is a wrapper that points the XDG directories at the `sandbox/.local` directory.
-It reads its config from `sandbox/`, reading [`./sandbox/nvim/init.lua`](`./sandbox/nvim/init.lua`) by default.
+To test this plugin with a fresh Neovim install, you can use the sandbox Nix dev shells.
+Each shell gives you a clean `nvim` and all of the tools the plugin needs.
+Every shell installs the plugin with a different plugin manager or source:
+
+- `nix develop .#sandbox-dev`: package the plugin with `vim.pack` from this repository, built from source
+- `nix develop .#sandbox-release`: package the plugin with `vim.pack` from the newest release tag on GitHub
+- `nix develop .#sandbox-lazy-dev`: package the plugin with `lazy.nvim` from this repository, built from source
+- `nix develop .#sandbox-lazy-release`: package the plugin with `lazy.nvim` from the newest release tag on GitHub
+
+In each shell `nvim` is a wrapper that points every XDG directory at that shell's own directory under `sandbox/`.
 Your own Neovim config and state stay untouched, and no other program in the shell sees the redirect.
-The wrapper loads this plugin via `vim.pack`, which clones it as a git repository.
-To test an update commit your change and then run `:lua vim.pack.update()` to pull it in and rebuild.
+The shared editor config is in [`sandbox/common.lua`](./sandbox/common.lua).
+
+The plugin managers clone this repository, so they do not see your uncommitted work.
+To test a change, commit it and then update the plugin (`:lua vim.pack.update()` or `:Lazy update`).
 
 ```sh
-nix develop .#sandbox
+nix develop .#sandbox-dev
 nvim template.yml
 ```

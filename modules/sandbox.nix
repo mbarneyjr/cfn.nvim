@@ -12,39 +12,43 @@
         '') [ "yaml" "json" ]}
       '';
 
-      nvim = pkgs.writeShellScriptBin "nvim" ''
-        set -euo pipefail
+      mkSandbox =
+        name:
+        let
+          nvim = pkgs.writeShellScriptBin "nvim" ''
+            set -euo pipefail
 
-        root="$(${lib.getExe pkgs.git} rev-parse --show-toplevel)"
+            root="$(${lib.getExe pkgs.git} rev-parse --show-toplevel)"
+            home="$root/sandbox/${name}"
 
-        export XDG_CONFIG_HOME="$root/sandbox"
-        export XDG_DATA_HOME="$root/sandbox/.local/data"
-        export XDG_STATE_HOME="$root/sandbox/.local/state"
-        export XDG_CACHE_HOME="$root/sandbox/.local/cache"
+            export XDG_CONFIG_HOME="$home"
+            export XDG_DATA_HOME="$home/.local/data"
+            export XDG_STATE_HOME="$home/.local/state"
+            export XDG_CACHE_HOME="$home/.local/cache"
 
-        pack="$XDG_DATA_HOME/''${NVIM_APPNAME:-nvim}/site/pack/sandbox/start"
-        mkdir -p "$pack"
-        ln -sfn ${parsers} "$pack/parsers"
+            pack="$XDG_DATA_HOME/nvim/site/pack/sandbox/start"
+            mkdir -p "$pack"
+            ln -sfn ${parsers} "$pack/parsers"
 
-        exec ${lib.getExe pkgs.neovim-unwrapped} "$@"
-      '';
-
-      nvim-release = pkgs.writeShellScriptBin "nvim-release" ''
-        export NVIM_APPNAME=release
-        exec ${lib.getExe nvim} "$@"
-      '';
+            exec ${lib.getExe pkgs.neovim-unwrapped} "$@"
+          '';
+        in
+        pkgs.mkShell {
+          packages = [
+            nvim
+            pkgs.git
+            pkgs.go
+            pkgs.curl
+            pkgs.awscli2
+            pkgs.python3Packages.cfn-lint
+            config.packages.cloudformation-languageserver
+          ];
+        };
     in
     {
-      devShells.sandbox = pkgs.mkShell {
-        packages = [
-          nvim
-          nvim-release
-          pkgs.go
-          pkgs.curl
-          pkgs.awscli2
-          pkgs.python3Packages.cfn-lint
-          config.packages.cloudformation-languageserver
-        ];
-      };
+      devShells.sandbox-dev = mkSandbox "dev";
+      devShells.sandbox-release = mkSandbox "release";
+      devShells.sandbox-lazy-dev = mkSandbox "lazy-dev";
+      devShells.sandbox-lazy-release = mkSandbox "lazy-release";
     };
 }

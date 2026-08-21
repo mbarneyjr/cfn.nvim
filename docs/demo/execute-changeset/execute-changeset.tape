@@ -12,7 +12,7 @@ Set FontFamily "Berkeley Mono, BerkeleyMono Nerd Font"
 Hide
 Type `cd "$(git rev-parse --show-toplevel)"` Enter
 Sleep 500ms
-Type `nix develop .#sandbox --command env AWS_SHARED_CREDENTIALS_FILE="$PWD/docs/demo/aws.local/credentials" AWS_CONFIG_FILE="$PWD/docs/demo/aws.local/config" nvim -c "source docs/demo/execute-changeset/seed.lua"`
+Type `nix develop .#sandbox-dev --command env AWS_SHARED_CREDENTIALS_FILE="$PWD/docs/demo/aws.local/credentials" AWS_CONFIG_FILE="$PWD/docs/demo/aws.local/config" nvim -c "source docs/demo/execute-changeset/seed.lua"`
 Enter
 Sleep 2s
 Type ":intro"

@@ -1,6 +1,4 @@
--- Installs the plugin from this repository and builds the binary from source.
-
-local sandbox = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h:h")
+local sandbox = vim.fn.fnamemodify(debug.getinfo(1, "S").source:sub(2), ":p:h:h:h")
 local root = vim.fn.fnamemodify(sandbox, ":h")
 
 vim.api.nvim_create_autocmd("PackChanged", {
@@ -15,6 +13,8 @@ vim.api.nvim_create_autocmd("PackChanged", {
 
 vim.pack.add({
   { src = "file://" .. root, name = "cfn.nvim" },
+  { src = "https://github.com/folke/tokyonight.nvim" },
+  { src = "https://github.com/folke/snacks.nvim" },
 }, { confirm = false })
 
 dofile(sandbox .. "/common.lua")

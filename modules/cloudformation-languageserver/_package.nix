@@ -8,16 +8,16 @@
 
 buildNpmPackage rec {
   pname = "aws-cloudformation-languageserver";
-  version = "1.8.0";
+  version = "1.9.0";
 
   src = fetchFromGitHub {
     owner = "aws-cloudformation";
     repo = "cloudformation-languageserver";
     rev = "v${version}";
-    sha256 = "sha256-uRXHw1ECx6miDyUC9tbe4+VqpvkxZbxxjvcxRqtCU8A=";
+    sha256 = "sha256-ilFXxnaDIMI7QYrU6LkZDtrvxBDXujB09F509A4wp3Q=";
   };
 
-  npmDepsHash = "sha256-c9xPBrBOdzsprdg2BpTwK+RuRRkUtglfNZ0KIP9W8IQ=";
+  npmDepsHash = "sha256-5LK17ID6JUVowy6UcxzCgfTr85OwGCl4t8diWsYkaqQ=";
 
   dontNpmBuild = true;
   nativeBuildInputs = [

@@ -53,6 +53,47 @@ function M.list_resources_all(resources)
   return nil, all
 end
 
+---@class CfnLspResourceTypesResult
+---@field resourceTypes string[]
+
+---@return string? err
+---@return CfnLspResourceTypesResult? result
+function M.resource_types()
+  ---@type lsp.ResponseError?, CfnLspResourceTypesResult?
+  local err, result = rpc.request("aws/cfn/resources/types", vim.empty_dict())
+  if err or result == nil then
+    return err and err.message or "no result", nil
+  end
+  return nil, result
+end
+
+---@class CfnLspResourceSelection
+---@field resourceType string
+---@field resourceIdentifiers string[]
+---@class CfnLspResourceStateParams
+---@field textDocument lsp.TextDocumentIdentifier
+---@field resourceSelections CfnLspResourceSelection[]
+---@field purpose "Import" | "Clone"
+---@field parentResourceType? string
+---@class CfnLspResourceStateResult
+---@field completionItem? lsp.CompletionItem
+---@field successfulImports table<string, string[]>
+---@field failedImports table<string, string[]>
+---@field failureReasons? table<string, table<string, string>>
+---@field warning? string
+
+---@param params CfnLspResourceStateParams
+---@return string? err
+---@return CfnLspResourceStateResult? result
+function M.resource_state(params)
+  ---@type lsp.ResponseError?, CfnLspResourceStateResult?
+  local err, result = rpc.request("aws/cfn/resources/state", params)
+  if err or result == nil then
+    return err and err.message or "no result", nil
+  end
+  return nil, result
+end
+
 ---@class CfnLspResourceStackManagementResult
 ---@field physicalResourceId string
 ---@field managedByStack boolean?

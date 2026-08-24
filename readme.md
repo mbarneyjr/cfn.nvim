@@ -12,7 +12,7 @@ It performs actions such as template deployment to a live stack, facilitating St
 - Status Window: A live view into registered templates/stacks, imports, changesets, and refactors: `:Cfn status`
 - Template Registration: Link a template to a profile/stack/region: `:Cfn template register`
 - Resource Renaming: Rename a logical ID and update all references in the buffer: `:Cfn rename`
-- Resource Import: Import a physical resource into the stack: `:Cfn import`
+- Resource Import: Import a physical resource into the stack, or insert a live resource into the template: `:Cfn import`
 - ChangeSet Creation: Create a changeset with parameter/tag forms: `:Cfn changeset create`
 - ChangeSet Execution: Execute a changeset and stream live resource deployment status: `:Cfn changeset execute`
 - ChangeSet Opening: Open the changeset in the AWS Console: `:Cfn changeset open`

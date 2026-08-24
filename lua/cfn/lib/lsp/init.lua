@@ -1,5 +1,6 @@
 local M = {}
 
+M.client = require("cfn.lib.lsp._rpc").client
 M.cfn = require("cfn.lib.lsp.cfn")
 M.credentials = require("cfn.lib.lsp.credentials")
 M.validation = require("cfn.lib.lsp.validation")

@@ -96,6 +96,15 @@ All commands are subcommands of `:Cfn`. Tab completion works at every level.
 :Cfn import
     Import a physical resource into the stack.
 
+    With the cursor on a resource, select whether to import a physical
+    resource into that resource, or to insert a new resource definition. With
+    the cursor elsewhere, a new resource definition is inserted.
+
+    To insert a new resource definition, select a resource type and then the
+    primary identifier of the live resource you want to import. The plugin
+    writes the resource into the `Resources` section of the template and
+    registers it for import.
+
 *:Cfn_unimport*
 :Cfn unimport
     Remove a pending resource import from the template registration. This

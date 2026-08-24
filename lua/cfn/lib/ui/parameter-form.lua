@@ -37,6 +37,12 @@ local function value_of(param)
   return param.CurrentValue or tostring(param.Default or "")
 end
 
+---@param values CfnLspParameterValue[]
+---@return string[]
+local function allowed_value_strings(values)
+  return vim.tbl_map(tostring, values)
+end
+
 ---@return boolean
 local function matches_pattern(value, pattern)
   local ok, re = pcall(vim.regex, "\\v^(" .. pattern .. ")$")
@@ -58,7 +64,7 @@ local function validate_param(param)
     end
   elseif param.AllowedPattern ~= nil and not matches_pattern(value_of(param), param.AllowedPattern) then
     return false, "value does not match AllowedPattern"
-  elseif param.AllowedValues ~= nil and not vim.tbl_contains(param.AllowedValues, value_of(param)) then
+  elseif param.AllowedValues ~= nil and not vim.tbl_contains(allowed_value_strings(param.AllowedValues), value_of(param)) then
     return false, "value not one of AllowedValues"
   elseif param.MaxLength and param.CurrentValue and (#param.CurrentValue > param.MaxLength) then
     return false, "value exceeds MaxLength"
@@ -188,14 +194,14 @@ local function choose_value(params, template_path)
     return
   end
   if param.AllowedValues ~= nil then
-    vim.ui.select(param.AllowedValues, {
+    vim.ui.select(allowed_value_strings(param.AllowedValues), {
       prompt = "Choose value for " .. param.name,
       format_item = function(item)
         return item
       end,
     }, function(choice)
       if choice ~= nil then
-        param.CurrentValue = tostring(choice)
+        param.CurrentValue = choice
         render(params)
       end
     end)

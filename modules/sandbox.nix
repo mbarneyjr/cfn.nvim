@@ -19,9 +19,10 @@
             set -euo pipefail
 
             root="$(${lib.getExe pkgs.git} rev-parse --show-toplevel)"
-            home="$root/sandbox/${name}"
+            config="$root/sandbox/${name}"
+            home="''${CFN_SANDBOX_HOME:-$config}"
 
-            export XDG_CONFIG_HOME="$home"
+            export XDG_CONFIG_HOME="$config"
             export XDG_DATA_HOME="$home/.local/data"
             export XDG_STATE_HOME="$home/.local/state"
             export XDG_CACHE_HOME="$home/.local/cache"

@@ -93,6 +93,8 @@ function M.move()
     if resource_exists_err ~= nil or resource_exists_in_current_stack == nil then
       return notify.error(resource_exists_err or "could not check if resource exists in stack")
     end
+    ---@type RefactorResourceMapping
+    local mapping
     if resource_exists_in_current_stack then
       -- resource exists in the current stack, we're moving the resource FROM here, prompt for a destination location
       local destination_stack = select_stack_registration("Choose a registered stack for the destination", registration)
@@ -107,7 +109,7 @@ function M.move()
         destination_logical_id = resource_at_cursor.logical_id.name
       end
 
-      local reconcile_err = refactor_util.reconcile_move({
+      mapping = {
         source = {
           stack_name = registration.stack_name,
           logical_id = resource_at_cursor.logical_id.name,
@@ -116,7 +118,8 @@ function M.move()
           stack_name = destination_stack.registration.stack_name,
           logical_id = destination_logical_id,
         },
-      }, refactor_operation)
+      }
+      local reconcile_err = refactor_util.reconcile_move(mapping, refactor_operation)
       if reconcile_err ~= nil then
         return notify.error("failed to reconcile move operation: " .. reconcile_err)
       end
@@ -130,7 +133,7 @@ function M.move()
       if resource_err ~= nil or source_resource == nil then
         return notify.error(resource_err or "no source resource chosen")
       end
-      local reconcile_err = refactor_util.reconcile_move({
+      mapping = {
         source = {
           stack_name = source_stack.registration.stack_name,
           logical_id = source_resource,
@@ -139,12 +142,21 @@ function M.move()
           stack_name = registration.stack_name,
           logical_id = resource_at_cursor.logical_id.name,
         },
-      }, refactor_operation)
+      }
+      local reconcile_err = refactor_util.reconcile_move(mapping, refactor_operation)
       if reconcile_err ~= nil then
         return notify.error("failed to reconcile move operation: " .. reconcile_err)
       end
     end
     state.refactor_operation:set("main", refactor_operation)
+    notify.info(
+      ("move %s:%s to %s:%s"):format(
+        mapping.source.stack_name,
+        mapping.source.logical_id,
+        mapping.destination.stack_name,
+        mapping.destination.logical_id
+      )
+    )
   end)()
 end
 

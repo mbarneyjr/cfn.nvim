@@ -91,7 +91,11 @@ local function wait_for_deployment(bufnr, registration, deployment)
           event.ResourceStatusReason or ("Resource Status: " .. event.ResourceStatus),
           "Title"
         )
-        if highlight_err ~= nil and not highlight_err:find("resource not found for logical id") then
+        if
+          highlight_err ~= nil
+          and not highlight_err:find("resource not found for logical id", 1, true)
+          and not highlight_err:find("invalid buffer", 1, true)
+        then
           progress_report.status = "failed"
           progress.send("error highlighting resource: " .. tostring(highlight_err), true, progress_report)
           return false

@@ -116,6 +116,9 @@ function M.register(profile, stack_name, region)
             return nil
           end,
         })
+        if stack_name == nil then
+          return notify.warn("template registration cancelled: no stack name chosen")
+        end
       else
         stack_name = picked.StackName
       end

@@ -85,7 +85,7 @@ function M.rename()
       local exists_err, exists =
         util.cfn.resource_exists_in_stack(template_registration.stack_name, old_name, refactor_operation)
       if exists_err ~= nil then
-        return notify.warn("not registering stack refactor: " .. exists_err)
+        notify.warn("not registering stack refactor: " .. exists_err)
       elseif exists then
         local err = refactor_util.reconcile_move({
           source = {
@@ -98,7 +98,7 @@ function M.rename()
           },
         }, refactor_operation)
         if err ~= nil then
-          return notify.warn("not registering stack refactor: " .. err)
+          notify.warn("not registering stack refactor: " .. err)
         else
           state.refactor_operation:set("main", refactor_operation)
         end

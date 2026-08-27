@@ -152,7 +152,11 @@ function M.unregister()
     notify.error("cannot register template: " .. (template_path_err or "no template path"))
     return
   end
+  if state.template_registration:get(template_path) == nil then
+    return notify.warn("template is not registered")
+  end
   state.template_registration:remove(template_path)
+  notify.info("unregistered template")
 end
 
 return M

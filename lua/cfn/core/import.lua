@@ -112,15 +112,17 @@ local function import_resource_at_cursor(bufnr, template_path, stack_name, resou
     return notify.error(importable_err or "no importable resource")
   end
   local resources_err, resources = lsp.resources.list_resources_all({ { resourceType = resource.type } })
-  if resources_err ~= nil or resources == nil or #resources < 1 then
-    return notify.error("cannot list " .. resource.type .. " " .. (resources_err or "no result from lsp"))
+  ---@type string[]
+  local discovered_identifiers = {}
+  if resources_err == nil and resources ~= nil and #resources >= 1 then
+    discovered_identifiers = resources[1].resourceIdentifiers
   end
 
   ---@type { [string]: string }
   local resource_identifier_table = {}
   ---@type string
   local resource_identifier_string = ""
-  if #resources[1].resourceIdentifiers < 1 then
+  if #discovered_identifiers < 1 then
     for _, key in ipairs(importable_resource.primaryIdentifierKeys or {}) do
       local resource_identifier = ui.input({
         prompt = "Please enter the "
@@ -142,7 +144,7 @@ local function import_resource_at_cursor(bufnr, template_path, stack_name, resou
       end
     end
   else
-    local chosen_identifier = ui.select(resources[1].resourceIdentifiers, {
+    local chosen_identifier = ui.select(discovered_identifiers, {
       prompt = "Please select the resource to import to " .. importable_resource.logicalId,
       format_item = function(item)
         return item

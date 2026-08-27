@@ -70,10 +70,15 @@ local function validate_param(param)
     return false, "value exceeds MaxLength"
   elseif param.MinLength and param.CurrentValue and (#param.CurrentValue < param.MinLength) then
     return false, "value below MinLength"
-  elseif param.MaxValue and param.CurrentValue and (tonumber(param.CurrentValue) > param.MaxValue) then
-    return false, "value exceeds MaxValue"
-  elseif param.MinValue and param.CurrentValue and (tonumber(param.CurrentValue) < param.MinValue) then
-    return false, "value below MinValue"
+  elseif (param.MaxValue or param.MinValue) and param.CurrentValue then
+    local number = tonumber(param.CurrentValue)
+    if number == nil then
+      return false, "value not a number"
+    elseif param.MaxValue and number > param.MaxValue then
+      return false, "value exceeds MaxValue"
+    elseif param.MinValue and number < param.MinValue then
+      return false, "value below MinValue"
+    end
   end
   return true
 end

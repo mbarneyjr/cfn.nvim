@@ -262,7 +262,7 @@ end
 function M.create()
   coroutine.wrap(function()
     local bufnr = vim.api.nvim_get_current_buf()
-    local registration_err, registration, template_path = util.state.get_template_registration(bufnr)
+    local registration_err, registration, template_path = util.state.get_template_registration(bufnr, "create changeset")
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return

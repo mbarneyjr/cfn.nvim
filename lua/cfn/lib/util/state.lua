@@ -15,13 +15,14 @@ function M.get_template_path_from_stack(stack_name)
 end
 
 ---@param bufnr? number
+---@param operation? string names the command in the error, for example "create changeset"
 ---@return string? error
 ---@return TemplateRegistration? registration
 ---@return string? template_path
-function M.get_template_registration(bufnr)
+function M.get_template_registration(bufnr, operation)
   local template_path_err, template_path = buffer.get_current_buffer_template_path(bufnr)
   if template_path_err ~= nil or not template_path then
-    return "cannot load profile: " .. (template_path_err or "no template path"), nil, nil
+    return "cannot " .. (operation or "read template") .. ": " .. (template_path_err or "no template path"), nil, nil
   end
 
   local registration = state.template_registration:get(template_path)

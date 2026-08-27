@@ -149,7 +149,7 @@ end
 function M.unregister()
   local template_path_err, template_path = buffer.get_current_buffer_template_path()
   if template_path_err ~= nil or not template_path then
-    notify.error("cannot register template: " .. (template_path_err or "no template path"))
+    notify.error("cannot unregister template: " .. (template_path_err or "no template path"))
     return
   end
   if state.template_registration:get(template_path) == nil then

@@ -68,7 +68,7 @@ function M.move()
     local bufnr = vim.api.nvim_get_current_buf()
     local template_path_err, template_path = buffer.get_current_buffer_template_path(bufnr)
     if template_path_err ~= nil or not template_path then
-      return notify.error("cannot load profile: " .. (template_path_err or "no template path"))
+      return notify.error("cannot move resource: " .. (template_path_err or "no template path"))
     end
     local registration = state.template_registration:get(template_path)
     if registration == nil then

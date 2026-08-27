@@ -40,7 +40,7 @@ function M.unimport()
         bufnr,
         resource_to_highlight.LogicalResourceId,
         "DiagnosticVirtualTextInfo",
-        "Resource to import: " .. vim.fn.json_encode(resource_to_highlight.ResourceIdentifier),
+        "Import: " .. vim.fn.json_encode(resource_to_highlight.ResourceIdentifier),
         "Title"
       )
       if highlight_err ~= nil and not highlight_err:find("resource not found for logical id") then

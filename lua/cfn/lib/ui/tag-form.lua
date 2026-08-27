@@ -58,9 +58,17 @@ local function validate_window_state()
       errors[line_no] = "line is missing = (key=value expected)"
       goto continue
     end
-    local key, _ = line:match("^(.-)=(.*)$")
+    local key, value = line:match("^(.-)=(.*)$")
     if key == "" then
       errors[line_no] = "key or value is empty"
+      goto continue
+    end
+    if #key > 128 then
+      errors[line_no] = "key is longer than 128 characters"
+      goto continue
+    end
+    if #value > 256 then
+      errors[line_no] = "value is longer than 256 characters"
       goto continue
     end
     if seen_keys[key] then

@@ -37,6 +37,11 @@ local function dispatch(args, options)
       return current_command({ args = vim.list_slice(args, i + 1), bang = options.bang })
     end
   end
+  local actions = vim.tbl_keys(current_command)
+  table.sort(actions)
+  return notify.error(
+    "incomplete command '" .. table.concat(args, " ") .. "', expected one of: " .. table.concat(actions, ", ")
+  )
 end
 
 ---@param candidates string[]

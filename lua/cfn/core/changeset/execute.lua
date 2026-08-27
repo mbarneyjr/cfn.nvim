@@ -160,9 +160,20 @@ function M.execute()
 
     local raw = vim.fn.reltimestr(vim.fn.reltime())
     local id = "cfn-nvim-" .. raw:gsub("%s", ""):gsub("%.", "")
+    if active_changeset.stackName ~= registration.stack_name then
+      notify.error(
+        "active changeset belongs to stack "
+          .. active_changeset.stackName
+          .. ", but this template is registered to "
+          .. registration.stack_name
+          .. ", please run :Cfn changeset load or :Cfn changeset create"
+      )
+      return
+    end
+
     local deployment_err, deployment = lsp.deployment.create({
       changeSetName = active_changeset.changeSetName,
-      stackName = active_changeset.stackName,
+      stackName = registration.stack_name,
       id = id,
     })
 

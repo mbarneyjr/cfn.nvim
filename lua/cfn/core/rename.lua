@@ -55,6 +55,16 @@ function M.rename()
       return
     end
 
+    if #new_name > 255 then
+      notify.error("logical ids must be at most 255 characters")
+      return
+    end
+
+    if tonumber(new_name) ~= nil and not vim.bo[bufnr].filetype:find("json") then
+      notify.error("logical ids in a YAML template cannot be purely numeric")
+      return
+    end
+
     if treesitter.get_resource_by_logical_id(bufnr, new_name) ~= nil then
       notify.error(string.format("a resource named %q already exists", new_name))
       return

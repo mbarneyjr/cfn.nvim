@@ -102,7 +102,8 @@ function M.remove_unused_stack_definitions(refactor_operation)
     used[mapping.destination.stack_name] = true
   end
   for i = #refactor_operation.stack_definitions, 1, -1 do
-    if not used[refactor_operation.stack_definitions[i].stack_name] then
+    local stack_definition = refactor_operation.stack_definitions[i]
+    if stack_definition.inferred and not used[stack_definition.stack_name] then
       table.remove(refactor_operation.stack_definitions, i)
     end
   end
@@ -176,12 +177,14 @@ function M.reconcile_move(new_mapping, refactor_operation)
     table.insert(refactor_operation.stack_definitions, {
       stack_name = new_mapping.source.stack_name,
       template_path = source_path,
+      inferred = true,
     })
   end
   if not M.stack_is_defined_in_refactor(new_mapping.destination.stack_name, refactor_operation) then
     table.insert(refactor_operation.stack_definitions, {
       stack_name = new_mapping.destination.stack_name,
       template_path = destination_path,
+      inferred = true,
     })
   end
 end

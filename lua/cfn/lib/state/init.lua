@@ -19,6 +19,7 @@ M.resources_to_import = Map.new()
 ---@class RefactorStackDefinition
 ---@field stack_name string
 ---@field template_path string
+---@field inferred? boolean the definition was added by a move, not by `:Cfn refactor stack add`
 ---@class RefactorResourceMappingLocation
 ---@field stack_name string
 ---@field logical_id string

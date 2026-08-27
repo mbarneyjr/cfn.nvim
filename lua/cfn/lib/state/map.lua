@@ -59,7 +59,7 @@ function Map:persist(filename)
     local read_data, read_err = readf:read("*a")
     if read_err == nil and read_data ~= nil then
       local ok, parsed_read_data = pcall(vim.json.decode, read_data)
-      if ok then
+      if ok and type(parsed_read_data) == "table" and not vim.islist(parsed_read_data) then
         self.data = parsed_read_data
       end
     end

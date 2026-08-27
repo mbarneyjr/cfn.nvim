@@ -134,7 +134,7 @@ local function import_resource_at_cursor(bufnr, template_path, stack_name, resou
           .. ")",
       })
       if resource_identifier == nil then
-        return notify.error("no resource identifier provided for " .. importable_resource.logicalId)
+        return notify.info("import cancelled")
       end
       resource_identifier_table[key] = resource_identifier
       if #resource_identifier_string == 0 then
@@ -151,7 +151,7 @@ local function import_resource_at_cursor(bufnr, template_path, stack_name, resou
       end,
     })
     if chosen_identifier == nil then
-      return notify.error("no resource identifier selected for " .. importable_resource.logicalId)
+      return notify.info("import cancelled")
     end
     resource_identifier_string = chosen_identifier
     local chosen_identifier_split = vim.split(chosen_identifier, "|")

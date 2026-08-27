@@ -48,7 +48,7 @@ function M.unimport()
       end
     end
     state.resources_to_import:set(template_path, resources_to_import_registration)
-    vim.notify("Unimported resources in template: " .. template_path, vim.log.levels.INFO)
+    notify.info("unimported " .. resource.logical_id.name)
   end)()
 end
 

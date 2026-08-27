@@ -67,7 +67,7 @@ function M.get_status_window_data(builder)
     local path = vim.fn.fnamemodify(key, ":.")
 
     builder:line({
-      { "  " .. arrow(open_templates[path]) .. " " },
+      { "  " .. arrow(open_templates[key]) .. " " },
       { path, "String" },
       { ": " },
       { value.stack_name, "Normal" },
@@ -75,17 +75,17 @@ function M.get_status_window_data(builder)
       { string.format("(%s/%s)", value.profile, value.region), "Comment" },
     }, {
       open = function()
-        open_templates[path] = true
+        open_templates[key] = true
       end,
       close = function()
-        open_templates[path] = false
+        open_templates[key] = false
       end,
       enter = function(winid)
         edit_template(path, winid)
       end,
     })
 
-    if open_templates[path] then
+    if open_templates[key] then
       if value.artifact_bucket_name then
         builder:line({
           { "      " },
@@ -97,18 +97,18 @@ function M.get_status_window_data(builder)
       local resources_to_import = state.resources_to_import:get(key)
       if resources_to_import ~= nil and #resources_to_import.resources > 0 then
         builder:line({
-          { "    " .. arrow(open_imports[path]) .. " " },
+          { "    " .. arrow(open_imports[key]) .. " " },
           { "resources to import (" .. #resources_to_import.resources .. ")" },
         }, {
           open = function()
-            open_imports[path] = true
+            open_imports[key] = true
           end,
           close = function()
-            open_imports[path] = false
+            open_imports[key] = false
           end,
         })
 
-        if open_imports[path] then
+        if open_imports[key] then
           for _, r in ipairs(resources_to_import.resources) do
             builder:line({
               { "        " },

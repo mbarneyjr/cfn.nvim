@@ -190,7 +190,7 @@ function M.collect_tags(tags)
   vim.bo[bufnr].undolevels = -1
   local initial_buffer = {}
   for key, value in pairs(tag_object) do
-    table.insert(initial_buffer, key .. "=" .. value)
+    table.insert(initial_buffer, key .. "=" .. tostring(value))
   end
   if #initial_buffer > 0 then
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, initial_buffer)

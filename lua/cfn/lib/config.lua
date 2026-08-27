@@ -80,6 +80,12 @@ function M.call_hook(name, ctx)
     notify.error(name .. " hook must return a table or nil")
     return nil
   end
+  for key, value in pairs(result or {}) do
+    if type(value) ~= "string" then
+      notify.error(name .. " hook returned a " .. type(value) .. " for '" .. tostring(key) .. "', expected a string")
+      return nil
+    end
+  end
   return result
 end
 

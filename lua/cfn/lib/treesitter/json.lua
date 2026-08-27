@@ -99,8 +99,8 @@ end
 local extract_getatt = function(bufnr, payload, out)
   local ref_range = range.node_to_range(payload)
   local ref_name = vim.treesitter.get_node_text(payload, bufnr)
-  -- match ${LogicalId} or ${LogicalId.attr}
-  ref_name = ref_name:match("%${([^.]+)") or ref_name
+  -- match ${LogicalId} or ${LogicalId.attr}, and the plain "LogicalId.Attr" form
+  ref_name = ref_name:match("%${([^.}]+)") or ref_name:match("^([^.]+)")
   ref_range.end_pos.character = ref_range.start_pos.character + #ref_name
   table.insert(out, {
     logical_id = ref_name,

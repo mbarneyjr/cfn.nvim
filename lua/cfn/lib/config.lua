@@ -95,6 +95,9 @@ function M.setup(opts)
   vim.validate("lsp_client_name", M.options.lsp_client_name, "string", "lsp_client_name must be a string")
   vim.validate("hooks.parameters", M.options.hooks.parameters, "function", true)
   vim.validate("hooks.tags", M.options.hooks.tags, "function", true)
+  vim.validate("status_window.height", M.options.status_window.height, function(height)
+    return height == nil or (type(height) == "number" and height > 0 and height % 1 == 0)
+  end, "status_window.height must be a positive integer")
 end
 
 return M

@@ -29,10 +29,10 @@ end
 
 local function stop_timer(key)
   local t = refresh_timers[key]
-  if t then
+  refresh_timers[key] = nil
+  if t and not t:is_closing() then
     t:stop()
     t:close()
-    refresh_timers[key] = nil
   end
 end
 
@@ -40,6 +40,8 @@ local function schedule_refresh(key, profile, region, expiryEpoch)
   stop_timer(key)
   local ms = math.max(0, (expiryEpoch - os.time() - SAFETY_BUFFER_SEC) * 1000)
   refresh_timers[key] = vim.defer_fn(function()
+    -- vim.defer_fn closes its own timer, so drop the handle before it goes stale
+    refresh_timers[key] = nil
     coroutine.wrap(function()
       local err, creds = cli.profile.credentials(profile, region)
       if err or creds == nil then

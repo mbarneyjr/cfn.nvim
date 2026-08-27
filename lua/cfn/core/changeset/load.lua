@@ -19,6 +19,15 @@ function M.load()
     end
 
     credentials.set(registration.profile, registration.region)
+
+    local describe_stack_err = lsp.stack.describe({ stackName = registration.stack_name })
+    if describe_stack_err ~= nil then
+      if describe_stack_err:find("does not exist", 1, true) then
+        return notify.warn("stack " .. registration.stack_name .. " does not exist")
+      end
+      return notify.error("error describing stack: " .. describe_stack_err)
+    end
+
     local changeset_err, changesets = lsp.stack.changeset_list_all({
       stackName = registration.stack_name,
     })

@@ -169,6 +169,7 @@ function M.reconcile_move(new_mapping, refactor_operation)
       return
     end
     existing.destination = new_mapping.destination
+    M.remove_unused_stack_definitions(refactor_operation)
   else
     table.insert(refactor_operation.mappings, new_mapping)
   end

@@ -60,19 +60,12 @@ local function complete(argument_lead, command_line)
   local args = vim.split(command_line, "%s+", { trimempty = false })
 
   local current_command = M.commands
-  for i, arg in ipairs(args) do
-    if i == #args then
-      break
-    end
-    if current_command[arg] ~= nil then
-      current_command = current_command[arg]
-    end
+  -- args[1] is the command name itself, and the last entry is the word being typed
+  for i = 2, #args - 1 do
+    current_command = current_command[args[i]]
     if type(current_command) ~= "table" then
       return {}
     end
-  end
-  if current_command == nil then
-    return {}
   end
   return filter_starts_with(vim.tbl_keys(current_command), argument_lead)
 end

@@ -43,7 +43,19 @@ local handle_interaction = function(type)
 end
 
 local function window_is_open()
-  return winid ~= nil and vim.api.nvim_win_is_valid(winid) and bufnr ~= nil and vim.api.nvim_buf_is_valid(bufnr)
+  if bufnr == nil or not vim.api.nvim_buf_is_valid(bufnr) then
+    return false
+  end
+  if winid ~= nil and vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == bufnr then
+    return true
+  end
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(win) == bufnr then
+      winid = win
+      return true
+    end
+  end
+  return false
 end
 
 function M.open()

@@ -270,6 +270,4 @@ function M.list_references(bufnr, logical_id)
   return out
 end
 
-M.list_references(4, "FooBucket")
-
 return M

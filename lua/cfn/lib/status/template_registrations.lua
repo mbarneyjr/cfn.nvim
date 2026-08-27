@@ -60,7 +60,10 @@ function M.get_status_window_data(builder)
     return
   end
 
-  for key, value in pairs(template_registrations) do
+  local keys = vim.tbl_keys(template_registrations)
+  table.sort(keys)
+  for _, key in ipairs(keys) do
+    local value = template_registrations[key]
     local path = vim.fn.fnamemodify(key, ":.")
 
     builder:line({

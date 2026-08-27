@@ -44,6 +44,7 @@ local action_map = {
 ---@param bufnr integer
 ---@param registration TemplateRegistration
 ---@param deployment CfnLspStackDeploymentCreateResult
+---@return boolean success
 local function wait_for_deployment(bufnr, registration, deployment)
   local progress_report = progress.send("executing changeset", true, {
     title = registration.stack_name,
@@ -71,7 +72,7 @@ local function wait_for_deployment(bufnr, registration, deployment)
     if events_err ~= nil or events == nil then
       progress_report.status = "failed"
       progress.send("error checking deployment status: " .. (events_err or "no events from lsp"), true, progress_report)
-      return
+      return false
     end
 
     for i = #events, 1, -1 do
@@ -93,7 +94,7 @@ local function wait_for_deployment(bufnr, registration, deployment)
         if highlight_err ~= nil and not highlight_err:find("resource not found for logical id") then
           progress_report.status = "failed"
           progress.send("error highlighting resource: " .. tostring(highlight_err), true, progress_report)
-          return
+          return false
         end
         progress.send(
           "resource " .. event.LogicalResourceId .. " (" .. event.ResourceType .. ") is " .. event.ResourceStatus,
@@ -113,7 +114,7 @@ local function wait_for_deployment(bufnr, registration, deployment)
         true,
         progress_report
       )
-      return
+      return false
     end
     if description.state ~= "IN_PROGRESS" then
       break
@@ -127,17 +128,19 @@ local function wait_for_deployment(bufnr, registration, deployment)
       true,
       progress_report
     )
-    return
+    return false
   end
   progress_report.status = "success"
   progress.send("executed changeset", true, progress_report)
   ui.template_highlight.clear(bufnr)
+  return true
 end
 
 function M.execute()
   coroutine.wrap(function()
     local bufnr = vim.api.nvim_get_current_buf()
-    local registration_err, registration, template_path = util.state.get_template_registration(bufnr, "execute changeset")
+    local registration_err, registration, template_path =
+      util.state.get_template_registration(bufnr, "execute changeset")
     if registration_err ~= nil or registration == nil or template_path == nil then
       notify.error(registration_err or "no registration found")
       return
@@ -163,9 +166,12 @@ function M.execute()
       notify.error("cannot execute changeset: " .. (deployment_err or "no deployment found"))
       return
     end
-    wait_for_deployment(bufnr, registration, deployment)
+    if not wait_for_deployment(bufnr, registration, deployment) then
+      notify.error("changeset execution failed: " .. deployment.changeSetName)
+    else
+      notify.info("executed changeset: " .. deployment.changeSetName)
+    end
     state.active_changeset:remove(vim.fn.fnamemodify(template_path, ":."))
-    notify.info("executed changeset: " .. deployment.changeSetName)
   end)()
 end
 

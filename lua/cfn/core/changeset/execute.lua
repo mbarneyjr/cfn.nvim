@@ -41,6 +41,27 @@ local action_map = {
   UPDATE_ROLLBACK_IN_PROGRESS = "DiagnosticVirtualTextInfo",
 }
 
+---@param description CfnLspStackDeploymentDescribeResult
+---@return string
+local function failure_reason(description)
+  if description.FailureReason ~= nil then
+    return description.FailureReason
+  end
+  for i = #(description.DeploymentEvents or {}), 1, -1 do
+    local event = assert(description.DeploymentEvents)[i]
+    if event.ResourceStatusReason ~= nil and (event.ResourceStatus or ""):find("_FAILED$") then
+      return (event.LogicalResourceId or "?")
+        .. " ("
+        .. (event.ResourceType or "?")
+        .. ") "
+        .. event.ResourceStatus
+        .. ": "
+        .. event.ResourceStatusReason
+    end
+  end
+  return "unknown error"
+end
+
 ---@param bufnr integer
 ---@param registration TemplateRegistration
 ---@param deployment CfnLspStackDeploymentCreateResult
@@ -128,7 +149,7 @@ local function wait_for_deployment(bufnr, registration, deployment)
   if assert(description).state == "FAILED" then
     progress_report.status = "failed"
     progress.send(
-      "changeset execution failed: " .. (assert(description).FailureReason or "unknown error"),
+      "changeset execution failed: " .. failure_reason(assert(description)),
       true,
       progress_report
     )

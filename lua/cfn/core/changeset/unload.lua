@@ -14,6 +14,10 @@ function M.unload()
       return
     end
 
+    if state.active_changeset:get(vim.fn.fnamemodify(template_path, ":.")) == nil then
+      return notify.warn("no active changeset to unload")
+    end
+
     local clear_err = ui.template_highlight.clear(bufnr)
     if clear_err ~= nil then
       return notify.error("cannot clear resource highlights: " .. clear_err)

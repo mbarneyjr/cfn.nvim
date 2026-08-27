@@ -8,9 +8,7 @@ local refactor_util = require("cfn.core.refactor.util")
 function M.create()
   coroutine.wrap(function()
     local refactor_operation = state.refactor_operation:get("main")
-    if
-      refactor_operation == nil or (#refactor_operation.mappings == 0 and #refactor_operation.stack_definitions == 0)
-    then
+    if refactor_operation == nil or #refactor_operation.mappings == 0 then
       return notify.error("no pending refactor, please run :Cfn refactor move")
     end
     if state.active_refactor:get("main") ~= nil then

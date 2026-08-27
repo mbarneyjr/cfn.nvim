@@ -348,7 +348,7 @@ function M.create()
       resourcesToImport = resources_to_import,
     })
     if create_validation_err ~= nil or create_validation == nil then
-      notify.error("error checking changeset status: " .. (create_validation_err or "no result from lsp"))
+      notify.error("error creating changeset: " .. (create_validation_err or "no result from lsp"))
       return
     end
     local changeset = wait_for_changeset(registration, create_validation)

@@ -67,11 +67,19 @@ function M.open()
     end,
   })
 
-  winid = vim.api.nvim_open_win(bufnr, false, {
+  local ok, win = pcall(vim.api.nvim_open_win, bufnr, false, {
     split = "above",
     win = -1,
     height = config.options.status_window.height,
   })
+  if not ok then
+    -- the buffer was never shown, so bufhidden = "wipe" would not remove it
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+    winid = nil
+    bufnr = nil
+    error(win, 0)
+  end
+  winid = win
   vim.wo[winid].winfixheight = true
   vim.wo[winid].number = false
   vim.wo[winid].relativenumber = false

@@ -2,6 +2,8 @@ local M = {}
 
 local notify = require("cfn.lib.notify")
 
+M.CANCELLED = "tag input cancelled"
+
 local ns = vim.api.nvim_create_namespace("cfn_tag_form")
 ---@type integer?
 local bufnr
@@ -157,7 +159,7 @@ function M.collect_tags(tags)
       if submitted then
         values = M.to_array(tag_object)
       else
-        err = "tag input cancelled"
+        err = M.CANCELLED
       end
       vim.schedule(function()
         local ok, resume_err = coroutine.resume(co, err, values)

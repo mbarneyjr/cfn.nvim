@@ -57,6 +57,9 @@ local function get_tags(ctx)
     stack_tags = ui.tag_form.to_array(vim.tbl_extend("force", ui.tag_form.to_object(stack_tags or {}), supplied))
   end
   local tag_err, tags = ui.tag_form.collect_tags(stack_tags)
+  if tag_err == ui.tag_form.CANCELLED then
+    return tag_err, nil
+  end
   if tag_err ~= nil or tags == nil then
     return "error collecting tags: " .. (tag_err or "no tags returned"), nil
   end
@@ -305,8 +308,12 @@ function M.create()
     end
 
     local tag_err, tags = get_tags(ctx)
+    if tag_err == ui.tag_form.CANCELLED then
+      notify.info("changeset creation cancelled")
+      return
+    end
     if tag_err ~= nil or tags == nil then
-      notify.error("error collecting tags: " .. (tag_err or "no tags returned"))
+      notify.error(tag_err or "no tags returned")
       return
     end
 

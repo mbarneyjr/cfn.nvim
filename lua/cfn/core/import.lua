@@ -31,8 +31,9 @@ end
 local function register_resource_to_import(bufnr, template_path, resource_to_import)
   local registration = state.resources_to_import:get(template_path) or { resources = {} }
 
-  local already_imported = false
-  for i, registered_import in pairs(registration.resources or {}) do
+  -- state.resources_to_import:get returns the live table, so reject the request
+  -- before anything is written
+  for _, registered_import in ipairs(registration.resources or {}) do
     if
       registered_import.ResourceType == resource_to_import.ResourceType
       and resource_identifiers_equal(registered_import.ResourceIdentifier, resource_to_import.ResourceIdentifier)
@@ -40,9 +41,14 @@ local function register_resource_to_import(bufnr, template_path, resource_to_imp
     then
       return "resource " .. registered_import.LogicalResourceId .. " is already registered to import this resource"
     end
+  end
+
+  local already_imported = false
+  for i, registered_import in ipairs(registration.resources or {}) do
     if registered_import.LogicalResourceId == resource_to_import.LogicalResourceId then
       registration.resources[i] = resource_to_import
       already_imported = true
+      break
     end
   end
   if not already_imported then

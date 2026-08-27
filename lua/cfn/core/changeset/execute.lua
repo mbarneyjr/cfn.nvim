@@ -164,6 +164,10 @@ function M.execute()
 
     if deployment_err ~= nil or deployment == nil then
       notify.error("cannot execute changeset: " .. (deployment_err or "no deployment found"))
+      if deployment_err ~= nil and deployment_err:find("ChangeSetNotFoundException", 1, true) then
+        state.active_changeset:remove(vim.fn.fnamemodify(template_path, ":."))
+        ui.template_highlight.clear(bufnr)
+      end
       return
     end
     if not wait_for_deployment(bufnr, registration, deployment) then

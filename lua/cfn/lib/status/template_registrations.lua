@@ -123,7 +123,7 @@ function M.get_status_window_data(builder)
         end
       end
 
-      local active_changeset = state.active_changeset:get(path)
+      local active_changeset = state.active_changeset:get(key)
       if active_changeset ~= nil then
         builder:line({
           { "      " },

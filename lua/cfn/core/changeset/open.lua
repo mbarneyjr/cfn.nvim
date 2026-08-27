@@ -14,7 +14,7 @@ function M.open()
       return
     end
 
-    local changeSet = state.active_changeset:get(vim.fn.fnamemodify(template_path, ":."))
+    local changeSet = state.active_changeset:get(template_path)
     if changeSet == nil then
       notify.warn("no active changeset found, please run :Cfn changeset load or :Cfn changeset create")
       return

@@ -361,7 +361,7 @@ function M.create()
       return
     end
     state.resources_to_import:remove(template_path)
-    state.active_changeset:set(vim.fn.fnamemodify(template_path, ":."), {
+    state.active_changeset:set(template_path, {
       stackName = create_validation.stackName,
       changeSetName = create_validation.changeSetName,
     })

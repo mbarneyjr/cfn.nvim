@@ -23,7 +23,7 @@ function M.unload()
       return notify.error("cannot clear resource highlights: " .. clear_err)
     end
 
-    state.active_changeset:remove(vim.fn.fnamemodify(template_path, ":."))
+    state.active_changeset:remove(template_path)
     notify.info("unloaded changeset")
   end)()
 end

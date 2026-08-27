@@ -152,7 +152,7 @@ function M.execute()
 
     credentials.set(registration.profile, registration.region)
 
-    local active_changeset = state.active_changeset:get(vim.fn.fnamemodify(template_path, ":."))
+    local active_changeset = state.active_changeset:get(template_path)
     if active_changeset == nil then
       notify.error("no active changeset found, please run :Cfn changeset load or :Cfn changeset create")
       return
@@ -179,7 +179,7 @@ function M.execute()
     else
       notify.info("executed changeset: " .. deployment.changeSetName)
     end
-    state.active_changeset:remove(vim.fn.fnamemodify(template_path, ":."))
+    state.active_changeset:remove(template_path)
   end)()
 end
 

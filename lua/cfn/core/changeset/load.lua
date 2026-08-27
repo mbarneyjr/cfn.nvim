@@ -82,7 +82,7 @@ function M.load()
       return
     end
 
-    state.active_changeset:set(vim.fn.fnamemodify(template_path, ":."), {
+    state.active_changeset:set(template_path, {
       stackName = registration.stack_name,
       changeSetName = chosen_changeset.changeSetName,
     })

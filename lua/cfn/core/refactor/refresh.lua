@@ -36,7 +36,7 @@ local function diff_stack(stack_definition)
 
   local deployed_err, deployed = lsp.stack.resources_all({ stackName = stack_definition.stack_name })
   if deployed_err ~= nil then
-    if not deployed_err:find("Stack with id " .. stack_definition.stack_name .. " does not exist") then
+    if not deployed_err:find("Stack with id " .. stack_definition.stack_name .. " does not exist", 1, true) then
       return "cannot list resources for stack " .. stack_definition.stack_name .. ": " .. deployed_err, nil, nil
     end
   end

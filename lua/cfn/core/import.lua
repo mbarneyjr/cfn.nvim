@@ -91,7 +91,7 @@ end
 local function import_resource_at_cursor(bufnr, template_path, stack_name, resource)
   local stack_resources_err, stack_resources = lsp.stack.resources_all({ stackName = stack_name })
   if stack_resources_err ~= nil then
-    if not stack_resources_err:find("Stack with id " .. stack_name .. " does not exist") then
+    if not stack_resources_err:find("Stack with id " .. stack_name .. " does not exist", 1, true) then
       return notify.error("cannot get stack resources: " .. stack_resources_err)
     end
   end

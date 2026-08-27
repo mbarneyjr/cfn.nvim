@@ -37,7 +37,7 @@ end
 local function select_resource(stack_name, resource_type)
   local err, stack_resources = lsp.stack.resources_all({ stackName = stack_name })
   if err ~= nil then
-    if not err:find("Stack with id " .. stack_name .. " does not exist") then
+    if not err:find("Stack with id " .. stack_name .. " does not exist", 1, true) then
       return "could not list resources for stack " .. stack_name .. ": " .. (err or "no result")
     end
   end

@@ -32,7 +32,7 @@ function M.resource_exists_in_stack(stack_name, logical_id, refactor_operation)
 
   local stack_resources_err, stack_resources = lsp.stack.resources_all({ stackName = stack_name })
   if stack_resources_err ~= nil then
-    if not stack_resources_err:find("Stack with id " .. stack_name .. " does not exist") then
+    if not stack_resources_err:find("Stack with id " .. stack_name .. " does not exist", 1, true) then
       return "cannot get stack resources: " .. stack_resources_err, nil
     end
   end

@@ -201,10 +201,21 @@ local function get_resource_import(registration, template_path)
 
   ---@type { [string]: string[] }
   local discovered_resources = {}
+  ---@type boolean
+  local confirmed_import = false
   for _, importable_resource in ipairs(new_resources) do
     if resources_to_import[importable_resource.logicalId] ~= nil then
       goto continue
     end
+    if not confirmed_import then
+      local confirm_import = ui.select({ "Cancel Import Operation", "Enter New Resource Ids" },
+        { prompt = "There are new template resource weren't marked for import, continue?" })
+      if confirm_import == nil or confirm_import == "Cancel Import Operation" then
+        return "import operation cancelled", nil, nil
+      end
+      confirmed_import = true
+    end
+
     if discovered_resources[importable_resource.type] == nil then
       local resources_err, resources = lsp.resources.list_resources_all({ { resourceType = importable_resource.type } })
       if resources_err ~= nil or resources == nil or #resources < 1 then

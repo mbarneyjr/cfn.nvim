@@ -309,6 +309,29 @@ local function insert_new_resource(bufnr, template_path)
   notify.info("inserted " .. new_logical_id .. " and registered it for import")
 end
 
+function M.setup()
+  vim.api.nvim_create_autocmd("BufReadPost", {
+    group = vim.api.nvim_create_augroup("cfn.core.import", {}),
+    desc = "redraw cfn.nvim import markers after a buffer reload",
+    callback = function(args)
+      local registration = state.resources_to_import:get(vim.api.nvim_buf_get_name(args.buf))
+      if registration == nil then
+        return
+      end
+      ui.template_highlight.clear(args.buf)
+      for _, resource_to_highlight in ipairs(registration.resources or {}) do
+        ui.template_highlight.highlight(
+          args.buf,
+          resource_to_highlight.LogicalResourceId,
+          "DiagnosticVirtualTextInfo",
+          "Import: " .. vim.fn.json_encode(resource_to_highlight.ResourceIdentifier),
+          "Title"
+        )
+      end
+    end,
+  })
+end
+
 function M.import()
   coroutine.wrap(function()
     local bufnr = vim.api.nvim_get_current_buf()

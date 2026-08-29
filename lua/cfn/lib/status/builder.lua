@@ -30,6 +30,7 @@ function Builder:line(segments, handlers)
   local line = #self.content
   local text = ""
   for _, segment in ipairs(segments) do
+    segment[1] = segment[1] or ""
     if segment[2] and #segment[1] > 0 then
       table.insert(self.highlights, {
         line = line,

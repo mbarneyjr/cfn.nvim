@@ -64,6 +64,9 @@ function M.get_status_window_data(builder)
   table.sort(keys)
   for _, key in ipairs(keys) do
     local value = template_registrations[key]
+    if value.stack_name == nil then
+      goto continue
+    end
     local path = vim.fn.fnamemodify(key, ":.")
 
     builder:line({
@@ -129,6 +132,7 @@ function M.get_status_window_data(builder)
         })
       end
     end
+    ::continue::
   end
 end
 

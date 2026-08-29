@@ -64,7 +64,9 @@ local function validate_param(param)
     end
   elseif param.AllowedPattern ~= nil and not matches_pattern(value_of(param), param.AllowedPattern) then
     return false, "value does not match AllowedPattern"
-  elseif param.AllowedValues ~= nil and not vim.tbl_contains(allowed_value_strings(param.AllowedValues), value_of(param)) then
+  elseif
+    param.AllowedValues ~= nil and not vim.tbl_contains(allowed_value_strings(param.AllowedValues), value_of(param))
+  then
     return false, "value not one of AllowedValues"
   elseif param.MaxLength and param.CurrentValue and (#param.CurrentValue > param.MaxLength) then
     return false, "value exceeds MaxLength"
@@ -347,7 +349,9 @@ function M.collect_parameter_values(params, template_path)
     vim.api.nvim_win_close(winid, true)
   end, { buffer = bufnr, nowait = true })
   vim.keymap.set("n", "C", function()
-    choose_value(params, template_path)
+    coroutine.wrap(function()
+      choose_value(params, template_path)
+    end)()
   end, { buffer = bufnr, nowait = true })
   vim.keymap.set("n", "<C-s>", function()
     reconcile(params)

@@ -7,6 +7,7 @@ local credentials = require("cfn.lib.credentials")
 local buffer = require("cfn.lib.buffer")
 local ui = require("cfn.lib.ui")
 local treesitter = require("cfn.lib.treesitter")
+local util = require("cfn.lib.util")
 
 ---@param a table<string, string>
 ---@param b table<string, string>
@@ -95,16 +96,14 @@ end
 ---@param stack_name string
 ---@param resource ResourceLocation
 local function import_resource_at_cursor(bufnr, template_path, stack_name, resource)
-  local stack_resources_err, stack_resources = lsp.stack.resources_all({ stackName = stack_name })
-  if stack_resources_err ~= nil then
-    if not stack_resources_err:find("Stack with id " .. stack_name .. " does not exist", 1, true) then
-      return notify.error("cannot get stack resources: " .. stack_resources_err)
-    end
+  local refactor_operation = state.refactor_operation:get("main")
+  local exists_err, exists =
+    util.cfn.resource_exists_in_stack(stack_name, resource.logical_id.name, refactor_operation)
+  if exists_err ~= nil then
+    return notify.error(exists_err)
   end
-  for _, stack_resource in ipairs(stack_resources or {}) do
-    if stack_resource.LogicalResourceId == resource.logical_id.name then
-      return notify.error("resource is already part of the stack and cannot be imported")
-    end
+  if exists then
+    return notify.error("resource is already part of the stack and cannot be imported")
   end
 
   local importable_err, importable_resource = get_importable_resource(template_path, resource.logical_id.name)

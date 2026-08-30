@@ -78,35 +78,66 @@ function M.rename()
     end
     table.sort(ranges, starts_after)
 
-    local _, template_registration, _ = util.state.get_template_registration()
-    if template_registration ~= nil then
+    ---@type CfnLspResourceToImport?
+    local marked_for_import = nil
+
+    local _, template_registration, template_path = util.state.get_template_registration()
+    if template_registration ~= nil and template_path ~= nil then
       credentials.set(template_registration.profile, template_registration.region)
-      local refactor_operation = state.refactor_operation:get("main") or { mappings = {}, stack_definitions = {} }
-      local exists_err, exists =
-        util.cfn.resource_exists_in_stack(template_registration.stack_name, old_name, refactor_operation)
-      if exists_err ~= nil then
-        notify.warn("not registering stack refactor: " .. exists_err)
-      elseif exists then
-        local err = refactor_util.reconcile_move({
-          source = {
-            stack_name = template_registration.stack_name,
-            logical_id = old_name,
-          },
-          destination = {
-            stack_name = template_registration.stack_name,
-            logical_id = new_name,
-          },
-        }, refactor_operation)
-        if err ~= nil then
-          notify.warn("not registering stack refactor: " .. err)
-        else
-          state.refactor_operation:set("main", refactor_operation)
+
+      local import_registration = state.resources_to_import:get(template_path)
+      for _, resource_to_import in ipairs(import_registration and import_registration.resources or {}) do
+        if resource_to_import.LogicalResourceId == old_name then
+          marked_for_import = resource_to_import
+          break
+        end
+      end
+
+      if marked_for_import ~= nil then
+        marked_for_import.LogicalResourceId = new_name
+        state.resources_to_import:set(template_path, import_registration)
+      else
+        local refactor_operation = state.refactor_operation:get("main") or { mappings = {}, stack_definitions = {} }
+        local exists_err, exists =
+          util.cfn.resource_exists_in_stack(template_registration.stack_name, old_name, refactor_operation)
+        if exists_err ~= nil then
+          notify.warn("not registering stack refactor: " .. exists_err)
+        elseif exists then
+          local err = refactor_util.reconcile_move({
+            source = {
+              stack_name = template_registration.stack_name,
+              logical_id = old_name,
+            },
+            destination = {
+              stack_name = template_registration.stack_name,
+              logical_id = new_name,
+            },
+          }, refactor_operation)
+          if err ~= nil then
+            notify.warn("not registering stack refactor: " .. err)
+          else
+            state.refactor_operation:set("main", refactor_operation)
+          end
         end
       end
     end
 
     for _, range in ipairs(ranges) do
       replace_range(bufnr, range, new_name)
+    end
+
+    if marked_for_import ~= nil then
+      ui.template_highlight.clear(bufnr, old_name)
+      local highlight_err = ui.template_highlight.highlight(
+        bufnr,
+        new_name,
+        "DiagnosticVirtualTextInfo",
+        "Import: " .. vim.fn.json_encode(marked_for_import.ResourceIdentifier),
+        "Title"
+      )
+      if highlight_err ~= nil then
+        notify.warn("cannot update import marker: " .. highlight_err)
+      end
     end
 
     notify.info(
